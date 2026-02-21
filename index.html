@@ -4,15 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Alex Psicultor Pro</title>
-
 <link rel="stylesheet" href="style.css">
-
-<!-- Dexie -->
-<script src="https://unpkg.com/dexie@3/dist/dexie.js"></script>
-
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 </head>
 <body>
 
@@ -31,11 +23,13 @@
 
 <section id="dashboard" class="page active">
   <div id="dashboardContent"></div>
-  <canvas id="graficoDashboard"></canvas>
 </section>
 
 <section id="tanques" class="page">
-  <div id="tanquesContent"></div>
+  <div id="tanquesContent">
+      <div id="areaTanques"></div>
+      <button onclick="adicionarTanque()">+ Adicionar Tanque</button>
+  </div>
 </section>
 
 <section id="financeiro" class="page">
@@ -46,14 +40,185 @@
   <div id="metasContent"></div>
 </section>
 
-</main>
+<script>
+// ===============================
+// ALEX PSICULTOR PRO - TANQUES
+// ===============================
 
-<!-- Scripts do sistema -->
-<script src="js/db.js"></script>
-<script src="js/tanques.js"></script>
-<script src="js/pesagens.js"></script>
-<script src="js/dashboard.js"></script>
-<script src="js/app.js"></script>
+// Carregar tanques salvos ou criar array vazio
+let tanques = JSON.parse(localStorage.getItem("tanques")) || [];
+
+// Salvar no navegador
+function salvarTanques() {
+    localStorage.setItem("tanques", JSON.stringify(tanques));
+}
+
+// Mostrar tanques na tela
+function mostrarTanques() {
+    const area = document.getElementById("areaTanques");
+    area.innerHTML = "";
+
+    if (tanques.length === 0) {
+        area.innerHTML = "<p style='color:white'>Nenhum tanque cadastrado.</p>";
+        return;
+    }
+
+    tanques.forEach((tanque, index) => {
+        // Histórico resumido
+        let historicoHTML = "";
+        if (tanque.historico.length > 0) {
+            historicoHTML = "<ul style='margin-left:20px;'>";
+            tanque.historico.forEach(h => {
+                historicoHTML += `<li>${h.data}: ${h.peso} g</li>`;
+            });
+            historicoHTML += "</ul>";
+        }
+
+        // Cálculos
+        const ultimoPeso = tanque.historico.length > 0 ? tanque.historico[tanque.historico.length - 1].peso : tanque.pesoMedio;
+        const ganhoTotal = ultimoPeso - tanque.pesoMedio;
+        const faltaMeta = (tanque.metaPeso || 1000) - ultimoPeso;
+        
+        // Ganho médio mensal
+        let ganhoMedioMensal = 0;
+        if (tanque.historico.length > 1) {
+            const primeiraData = new Date(tanque.historico[0].data);
+            const ultimaData = new Date(tanque.historico[tanque.historico.length - 1].data);
+            const mesesPassados = ((ultimaData.getFullYear() - primeiraData.getFullYear()) * 12) + (ultimaData.getMonth() - primeiraData.getMonth()) + 1;
+            ganhoMedioMensal = ganhoTotal / mesesPassados;
+        }
+
+        // Status
+        let status = ganhoTotal >= faltaMeta ? "🚀 Acima da meta" : "⚠️ Crescimento abaixo da meta";
+
+        area.innerHTML += `
+            <div style="background:#1e3a5f; padding:15px; margin:10px; border-radius:10px; color:white;">
+                <h3>${tanque.nome}</h3>
+                <p><strong>Peixes:</strong> ${tanque.quantidade}</p>
+                <p><strong>Peso Atual:</strong> ${ultimoPeso.toFixed(2)} g</p>
+                <p><strong>Ganho Total:</strong> ${ganhoTotal.toFixed(2)} g</p>
+                <p><strong>Meta Final:</strong> ${tanque.metaPeso || 1000} g</p>
+                <p><strong>Falta para Meta:</strong> ${faltaMeta.toFixed(2)} g</p>
+                <p><strong>Ganho Médio Mensal:</strong> ${ganhoMedioMensal.toFixed(2)} g</p>
+                <p><strong>Status:</strong> ${status}</p>
+                ${historicoHTML}
+                <button onclick="adicionarPesagem(${index})">Adicionar Pesagem</button>
+                <button onclick="removerTanque(${index})" style="background:red;color:white;margin-left:5px;">Excluir</button>
+            </div>
+        `;
+    });
+}
+
+// Adicionar tanque
+function adicionarTanque() {
+    const nome = prompt("Nome do tanque:");
+    const quantidade = parseInt(prompt("Quantidade de peixes:"));
+    const pesoMedio = parseFloat(prompt("Peso médio inicial (g):"));
+    const metaPeso = parseFloat(prompt("Meta final (g):"));
+
+    if (!nome || !quantidade || !pesoMedio || !metaPeso) {
+        alert("Preencha todos os campos corretamente!");
+        return;
+    }
+
+    tanques.push({
+        nome,
+        quantidade,
+        pesoMedio,
+        metaPeso,
+        historico: []
+    });
+
+    salvarTanques();
+    mostrarTanques();
+}
+
+// Adicionar pesagem
+function adicionarPesagem(index) {
+    const novoPeso = parseFloat(prompt("Novo peso médio (g):"));
+    const dataPesagem = prompt("Data da pesagem (dd/mm/aaaa):", new Date().toLocaleDateString());
+
+    if (!novoPeso || !dataPesagem) {
+        alert("Digite valores válidos!");
+        return;
+    }
+
+    const tanque = tanques[index];
+
+    tanque.historico.push({
+        data: dataPesagem,
+        peso: novoPeso
+    });
+
+    tanque.pesoMedio = novoPeso;
+
+    salvarTanques();
+    mostrarTanques();
+
+    alert("Pesagem salva com sucesso!");
+}
+
+// Remover tanque
+function removerTanque(index) {
+    if (confirm("Deseja realmente excluir este tanque?")) {
+        tanques.splice(index, 1);
+        salvarTanques();
+        mostrarTanques();
+    }
+}
+
+// Inicializar ao abrir
+document.addEventListener("DOMContentLoaded", function() {
+    mostrarTanques();
+});
+
+// Navegação simples entre páginas
+const App = {
+    navigate: function(pageId) {
+        document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+        document.getElementById(pageId).classList.add("active");
+    }
+};
+</script>
+
+<style>
+body {
+    background:#0f1e38;
+    color:white;
+    font-family:sans-serif;
+    margin:0;
+    padding:0;
+}
+header {
+    background:#1e3a5f;
+    padding:15px;
+    text-align:center;
+}
+nav {
+    display:flex;
+    justify-content:center;
+    margin:10px 0;
+}
+nav button {
+    margin:0 5px;
+    padding:10px 20px;
+    background:#1e3a5f;
+    color:white;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+}
+nav button:hover {
+    background:#274c7b;
+}
+.page {
+    display:none;
+    padding:15px;
+}
+.page.active {
+    display:block;
+}
+</style>
 
 </body>
 </html>
