@@ -44,10 +44,39 @@ document.getElementById("totalReceitas").innerText = totalReceitas.toFixed(2);
 document.getElementById("lucroTotal").innerText = lucro.toFixed(2);
 document.getElementById("biomassaTotal").innerText = biomassaTotal.toFixed(2);
 
+let custoKg = biomassaTotal > 0 ? totalDespesas / biomassaTotal : 0;
+let eficiencia = totalReceitas > 0 ? (lucro / totalReceitas) * 100 : 0;
+let projecao = lucro * 1.2;
+
+document.getElementById("custoKg").innerText = custoKg.toFixed(2);
+document.getElementById("eficiencia").innerText = eficiencia.toFixed(1);
+document.getElementById("projecao").innerText = projecao.toFixed(2);
+
 let lista = document.getElementById("listaTanques");
 lista.innerHTML="";
 tanques.forEach(t=>{
 lista.innerHTML += `<li>${t.nome} - ${t.biomassa} kg</li>`;
+});
+
+gerarGrafico(totalReceitas,totalDespesas);
+}
+
+function gerarGrafico(receitas,despesas){
+
+let ctx = document.getElementById("graficoFinanceiro");
+
+if(window.grafico) window.grafico.destroy();
+
+window.grafico = new Chart(ctx,{
+type:'bar',
+data:{
+labels:['Receitas','Despesas'],
+datasets:[{
+label:'Financeiro',
+data:[receitas,despesas],
+backgroundColor:['#10b981','#ef4444']
+}]
+}
 });
 }
 
