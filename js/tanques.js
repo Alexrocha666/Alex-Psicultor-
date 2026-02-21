@@ -23,18 +23,40 @@ const Tanques = {
       return;
     }
 
-    lista.forEach(t => {
-      container.innerHTML += `
-        <div class="card">
-          <strong>${t.nome}</strong><br>
-          Espécie: ${t.especie}<br>
-          Peixes: ${t.quantidade}<br>
-          Peso Inicial: ${t.pesoInicial}g<br>
-          Meta: ${t.metaPeso}g<br>
-          <button onclick="Tanques.remove(${t.id})">Excluir</button>
-        </div>
-      `;
-    });
+    lista.forEach(async t => {
+
+  const pesagens = await db.pesagens
+    .where("tanqueId")
+    .equals(t.id)
+    .toArray();
+
+  let pesoAtual = t.pesoInicial;
+
+  if (pesagens.length > 0) {
+    pesoAtual = pesagens[pesagens.length - 1].pesoMedio;
+  }
+
+  const ganhoTotal = pesoAtual - t.pesoInicial;
+
+  container.innerHTML += `
+    <div class="card">
+      <strong>${t.nome}</strong><br>
+      Espécie: ${t.especie}<br>
+      Peixes: ${t.quantidade}<br>
+      Peso Atual: ${pesoAtual}g<br>
+      Ganho Total: ${ganhoTotal}g<br>
+      Meta: ${t.metaPeso}g<br><br>
+
+      <button onclick="Pesagens.adicionar(${t.id})">
+        Registrar Pesagem
+      </button>
+
+      <button onclick="Tanques.remove(${t.id})">
+        Excluir
+      </button>
+    </div>
+  `;
+});
   },
 
   async add() {
