@@ -3,158 +3,62 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Alex Psicultor</title>
+<title>Alex Psicultor Pro</title>
+
 <link rel="stylesheet" href="style.css">
+
+<!-- Dexie -->
+<script src="https://unpkg.com/dexie@3/dist/dexie.js"></script>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 </head>
 <body>
 
 <header>
-    <h1>🐟 Alex Psicultor</h1>
+  <h1>🐟 Alex Psicultor Pro</h1>
 </header>
+
+<nav>
+  <button onclick="App.navigate('dashboard')">Dashboard</button>
+  <button onclick="App.navigate('tanques')">Tanques</button>
+  <button onclick="App.navigate('financeiro')">Financeiro</button>
+  <button onclick="App.navigate('metas')">Metas</button>
+</nav>
 
 <main>
 
 <section id="dashboard" class="page active">
-    <div class="card">
-        <h2>Resumo Geral</h2>
-        <p>Total Investido: R$ <span id="totalSaidas">0</span></p>
-        <p>Total Vendido: R$ <span id="totalEntradas">0</span></p>
-        <p>Lucro: R$ <span id="lucro">0</span></p>
-    </div>
+  <div id="dashboardContent"></div>
+  <canvas id="graficoDashboard"></canvas>
 </section>
 
 <section id="tanques" class="page">
-    <div class="card">
-        <h2>Novo Tanque</h2>
-        <input type="text" id="nomeTanque" placeholder="Nome do tanque">
-        <input type="number" id="qtdPeixes" placeholder="Quantidade de peixes">
-        <input type="number" id="pesoMedio" placeholder="Peso médio (g)">
-        <button onclick="adicionarTanque()">Adicionar Tanque</button>
-    </div>
-
-    <div id="listaTanques"></div>
+  <div id="tanquesContent"></div>
 </section>
 
 <section id="financeiro" class="page">
-    <div class="card">
-        <h2>Novo Lançamento</h2>
-        <select id="tipo">
-            <option value="entrada">Entrada</option>
-            <option value="saida">Saída</option>
-        </select>
-        <input type="text" id="descricao" placeholder="Descrição">
-        <input type="number" id="valor" placeholder="Valor">
-        <button onclick="salvarLancamento()">Salvar</button>
-    </div>
+  <div id="financeiroContent"></div>
+</section>
 
-    <div id="listaFinanceiro"></div>
+<section id="metas" class="page">
+  <div id="metasContent"></div>
 </section>
 
 </main>
 
-<nav>
-    <button onclick="trocarPagina('dashboard')">🏠</button>
-    <button onclick="trocarPagina('tanques')">🐟</button>
-    <button onclick="trocarPagina('financeiro')">💰</button>
-</nav>
-
-<script src="script.js"></script>
-</body>
-</html><p>Lucro: R$ <span id="lucro">0</span></p>
-</div>
-</div>
-
-<div id="lancamento" style="display:none;">
-<div class="card">
-<h3>Novo Lançamento</h3>
-
-<select id="tipo">
-<option value="entrada">Entrada</option>
-<option value="saida">Saída</option>
-</select>
-
-<input type="text" id="descricao" placeholder="Descrição">
-<input type="number" id="valor" placeholder="Valor">
-
-<button onclick="salvar()">Salvar</button>
-
-</div>
-
-<div id="lista"></div>
-</div>
-
-</div>
-
-<nav>
-<button onclick="mostrar('home')">🏠</button>
-<button onclick="mostrar('lancamento')">💰</button>
-</nav>
-
-<script>
-
-let dados = JSON.parse(localStorage.getItem("psicultor")) || [];
-
-function mostrar(secao){
-document.getElementById("home").style.display="none";
-document.getElementById("lancamento").style.display="none";
-document.getElementById(secao).style.display="block";
-}
-
-function salvar(){
-let tipo = document.getElementById("tipo").value;
-let descricao = document.getElementById("descricao").value;
-let valor = parseFloat(document.getElementById("valor").value);
-
-if(!descricao || !valor){
-alert("Preencha todos os campos!");
-return;
-}
-
-dados.push({tipo,descricao,valor});
-localStorage.setItem("psicultor",JSON.stringify(dados));
-
-document.getElementById("descricao").value="";
-document.getElementById("valor").value="";
-
-atualizar();
-}
-
-function remover(index){
-dados.splice(index,1);
-localStorage.setItem("psicultor",JSON.stringify(dados));
-atualizar();
-}
-
-function atualizar(){
-let lista = document.getElementById("lista");
-lista.innerHTML="";
-
-let totalEntradas=0;
-let totalSaidas=0;
-
-dados.forEach((item,index)=>{
-if(item.tipo=="entrada") totalEntradas+=item.valor;
-else totalSaidas+=item.valor;
-
-lista.innerHTML+=`
-<div class="list-item">
-<div>
-<strong>${item.descricao}</strong><br>
-R$ ${item.valor}
-</div>
-<button class="small-btn" onclick="remover(${index})">X</button>
-</div>
-`;
-});
-
-document.getElementById("totalEntradas").innerText=totalEntradas;
-document.getElementById("totalSaidas").innerText=totalSaidas;
-document.getElementById("lucro").innerText=(totalEntradas-totalSaidas);
-}
-
-atualizar();
-
-</script>
+<!-- Scripts do sistema -->
+<script src="js/db.js"></script>
+<script src="js/tanques.js"></script>
+<script src="js/pesagens.js"></script>
+<script src="js/crescimento.js"></script>
+<script src="js/financeiro.js"></script>
+<script src="js/metas.js"></script>
+<script src="js/dashboard.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/export.js"></script>
+<script src="js/app.js"></script>
 
 </body>
 </html>
