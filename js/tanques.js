@@ -1,12 +1,10 @@
-
 const Tanques = {
 
   async render() {
     const container = document.getElementById("tanquesContent");
-
     const lista = await db.tanques.toArray();
 
-    container.innerHTML = `
+    let html = `
       <div class="card">
         <h2>Novo Tanque</h2>
         <input id="nome" placeholder="Nome do tanque">
@@ -19,44 +17,47 @@ const Tanques = {
     `;
 
     if (lista.length === 0) {
-      container.innerHTML += `<div class="card">Nenhum tanque cadastrado.</div>`;
+      html += `<div class="card">Nenhum tanque cadastrado.</div>`;
+      container.innerHTML = html;
       return;
     }
 
-    lista.forEach(async t => {
+    for (let t of lista) {
 
-  const pesagens = await db.pesagens
-    .where("tanqueId")
-    .equals(t.id)
-    .toArray();
+      const pesagens = await db.pesagens
+        .where("tanqueId")
+        .equals(t.id)
+        .toArray();
 
-  let pesoAtual = t.pesoInicial;
+      let pesoAtual = t.pesoInicial;
 
-  if (pesagens.length > 0) {
-    pesoAtual = pesagens[pesagens.length - 1].pesoMedio;
-  }
+      if (pesagens.length > 0) {
+        pesoAtual = pesagens[pesagens.length - 1].pesoMedio;
+      }
 
-  const ganhoTotal = pesoAtual - t.pesoInicial;
+      const ganhoTotal = pesoAtual - t.pesoInicial;
 
-  container.innerHTML += `
-    <div class="card">
-      <strong>${t.nome}</strong><br>
-      Espécie: ${t.especie}<br>
-      Peixes: ${t.quantidade}<br>
-      Peso Atual: ${pesoAtual}g<br>
-      Ganho Total: ${ganhoTotal}g<br>
-      Meta: ${t.metaPeso}g<br><br>
+      html += `
+        <div class="card">
+          <strong>${t.nome}</strong><br>
+          Espécie: ${t.especie}<br>
+          Peixes: ${t.quantidade}<br>
+          Peso Atual: ${pesoAtual}g<br>
+          Ganho Total: ${ganhoTotal}g<br>
+          Meta: ${t.metaPeso}g<br><br>
 
-      <button onclick="Pesagens.adicionar(${t.id})">
-        Registrar Pesagem
-      </button>
+          <button onclick="Pesagens.adicionar(${t.id})">
+            Registrar Pesagem
+          </button>
 
-      <button onclick="Tanques.remove(${t.id})">
-        Excluir
-      </button>
-    </div>
-  `;
-});
+          <button onclick="Tanques.remove(${t.id})">
+            Excluir
+          </button>
+        </div>
+      `;
+    }
+
+    container.innerHTML = html;
   },
 
   async add() {
