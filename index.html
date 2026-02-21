@@ -53,6 +53,19 @@ if ("serviceWorker" in navigator) {
 navigator.serviceWorker.register("service-worker.js");
 }
 </script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="card">
+<h2>📊 Gráfico Financeiro</h2>
+<canvas id="graficoFinanceiro"></canvas>
+</div>
+
+<div class="card">
+<h2>📈 Indicadores</h2>
+<p>💵 Custo por Kg: R$ <span id="custoKg">0</span></p>
+<p>📊 Eficiência Produtiva: <span id="eficiencia">0</span>%</p>
+<p>🚀 Projeção de Lucro: R$ <span id="projecao">0</span></p>
+</div>
 
 </body>
                        </html>
