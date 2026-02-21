@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Alex Psicultor</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.json">
+</head>
+<body>
+
+<h1>🐟 Alex Psicultor</h1>
+
+<div class="card">
+<h2>📊 Dashboard</h2>
+<p>💰 Lucro Total: R$ <span id="lucroTotal">0</span></p>
+<p>📉 Despesas: R$ <span id="totalDespesas">0</span></p>
+<p>📈 Receitas: R$ <span id="totalReceitas">0</span></p>
+<p>🐟 Biomassa Total: <span id="biomassaTotal">0</span> kg</p>
+</div>
+
+<div class="card">
+<h2>➕ Cadastrar Tanque</h2>
+<input id="nomeTanque" placeholder="Nome do tanque">
+<input id="qtdPeixes" type="number" placeholder="Quantidade de peixes">
+<input id="pesoMedio" type="number" placeholder="Peso médio (kg)">
+<button onclick="salvarTanque()">Salvar Tanque</button>
+</div>
+
+<div class="card">
+<h2>💸 Registrar Despesa</h2>
+<input id="descDespesa" placeholder="Descrição">
+<input id="valorDespesa" type="number" placeholder="Valor">
+<button onclick="salvarDespesa()">Salvar Despesa</button>
+</div>
+
+<div class="card">
+<h2>💰 Registrar Receita</h2>
+<input id="descReceita" placeholder="Descrição">
+<input id="valorReceita" type="number" placeholder="Valor">
+<button onclick="salvarReceita()">Salvar Receita</button>
+</div>
+
+<div class="card">
+<h2>🐟 Tanques Cadastrados</h2>
+<ul id="listaTanques"></ul>
+</div>
+
+<script src="app.js"></script>
+
+<script>
+if ("serviceWorker" in navigator) {
+navigator.serviceWorker.register("service-worker.js");
+}
+</script>
+
+</body>
+                       </html>
