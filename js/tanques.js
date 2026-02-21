@@ -18,7 +18,6 @@ const Tanques = {
     `;
 
     if (lista.length === 0) {
-      html += `<div class="card">Nenhum tanque cadastrado.</div>`;
       container.innerHTML = html;
       return;
     }
@@ -30,8 +29,9 @@ const Tanques = {
         .equals(t.id)
         .toArray();
 
-      let pesoAtual = t.pesoInicial || 0;
+      pesagens.sort((a,b) => new Date(a.data) - new Date(b.data));
 
+      let pesoAtual = t.pesoInicial;
       if (pesagens.length > 0) {
         pesoAtual = pesagens[pesagens.length - 1].pesoMedio;
       }
@@ -39,59 +39,115 @@ const Tanques = {
       const hoje = new Date();
       const dataInicial = new Date(t.dataPovoamento);
       const diasPassados = (hoje - dataInicial) / (1000 * 60 * 60 * 24);
+      const semanasPassadas = diasPassados / 7;
       const mesesPassados = diasPassados / 30;
 
       const ganhoTotal = pesoAtual - t.pesoInicial;
-      const ganhoMensalAtual = mesesPassados > 0
-        ? ganhoTotal / mesesPassados
+
+      const ganhoSemanalReal = semanasPassadas >= 1
+        ? ganhoTotal / semanasPassadas
         : 0;
 
       const metaPeso = t.metaPeso || 0;
-      const mesesMeta = t.mesesMeta || 6; // padrão automático
+      const mesesMeta = t.mesesMeta || 6;
+
+      const semanasMeta = mesesMeta * 4;
+      const semanasRestantes = semanasMeta - semanasPassadas;
 
       const faltaParaMeta = metaPeso - pesoAtual;
-      const mesesRestantes = mesesMeta - mesesPassados;
 
-      const necessarioPorMes = mesesRestantes > 0
-        ? faltaParaMeta / mesesRestantes
+      const necessarioPorSemana = semanasRestantes > 0
+        ? faltaParaMeta / semanasRestantes
+        : 0;
+
+      const necessarioPorMes = mesesMeta > 0
+        ? faltaParaMeta / (mesesMeta - mesesPassados)
         : 0;
 
       const biomassaKg = (pesoAtual * t.quantidade) / 1000;
 
-      let status = "Dentro da média";
+      const percentual = metaPeso > 0
+        ? (pesoAtual / metaPeso) * 100
+        : 0;
 
-      if (ganhoMensalAtual < necessarioPorMes) {
-        status = "⚠️ Crescimento abaixo da meta";
-      } else if (ganhoMensalAtual > necessarioPorMes) {
+      let status = "✅ Dentro da meta";
+
+      if (ganhoSemanalReal < necessarioPorSemana) {
+        status = "⚠️ Abaixo da meta";
+      } else if (ganhoSemanalReal > necessarioPorSemana) {
         status = "🚀 Acima da meta";
       }
 
       html += `
-        <div class="card">
-          <strong>${t.nome}</strong><br>
-          Espécie: ${t.especie}<br>
-          Peixes: ${t.quantidade}<br><br>
+      <div class="card">
 
-          Peso Atual: ${pesoAtual.toFixed(2)} g<br>
-          Ganho Total: ${ganhoTotal.toFixed(2)} g<br>
-          Meta Final: ${metaPeso} g<br>
-          Falta para Meta: ${faltaParaMeta.toFixed(2)} g<br><br>
+        <h3>${t.nome}</h3>
+        Espécie: ${t.especie} <br>
+        Peixes: ${t.quantidade}
 
-          📅 Meses Passados: ${mesesPassados.toFixed(1)}<br>
-          📈 Ganho Médio Mensal: ${ganhoMensalAtual.toFixed(2)} g<br>
-          🎯 Necessário por Mês: ${necessarioPorMes.toFixed(2)} g<br><br>
+        <hr>
 
-          🐟 Biomassa Total: ${biomassaKg.toFixed(2)} kg<br>
-          Status: ${status}<br><br>
+        <h4>📊 Situação Atual</h4>
+        Peso Atual: ${pesoAtual.toFixed(2)} g<br>
+        Ganho Total: ${ganhoTotal.toFixed(2)} g<br>
+        Biomassa: ${biomassaKg.toFixed(2)} kg
 
-          <button onclick="Pesagens.adicionar(${t.id})">
-            Registrar Pesagem
-          </button>
-
-          <button onclick="Tanques.remove(${t.id})">
-            Excluir
-          </button>
+        <div style="background:#1e3a5f;border-radius:10px;overflow:hidden;margin-top:8px;">
+          <div style="
+              width:${percentual}%;
+              background:#4caf50;
+              padding:6px;
+              text-align:center;
+              font-size:12px;
+              color:white;">
+            ${percentual.toFixed(1)}%
+          </div>
         </div>
+
+        <hr>
+
+        <h4>🎯 Meta</h4>
+        Meta Final: ${metaPeso} g<br>
+        Falta: ${faltaParaMeta.toFixed(2)} g<br>
+        Necessário / mês: ${necessarioPorMes.toFixed(2)} g<br>
+        Necessário / semana: ${necessarioPorSemana.toFixed(2)} g
+
+        <hr>
+
+        <h4>📈 Desempenho</h4>
+        Semanas passadas: ${semanasPassadas.toFixed(1)}<br>
+        Ritmo atual / semana: ${ganhoSemanalReal.toFixed(2)} g<br>
+        Status: ${status}
+
+        <hr>
+
+        <h4>📅 Histórico</h4>
+        <table style="width:100%;font-size:12px;">
+          <tr>
+            <th>Data</th>
+            <th>Peso</th>
+            <th>Ganho</th>
+          </tr>
+          ${pesagens.map(p => `
+            <tr>
+              <td>${new Date(p.data).toLocaleDateString()}</td>
+              <td>${p.pesoMedio} g</td>
+              <td>${p.ganho.toFixed(2)} g</td>
+            </tr>
+          `).join("")}
+        </table>
+
+        <br>
+
+        <button onclick="Pesagens.adicionar(${t.id})">
+          Registrar Pesagem
+        </button>
+
+        <button onclick="Tanques.remove(${t.id})">
+          Excluir
+        </button>
+
+      </div>
       `;
     }
 
@@ -126,6 +182,7 @@ const Tanques = {
 
   async remove(id) {
     await db.tanques.delete(id);
+    await db.pesagens.where("tanqueId").equals(id).delete();
     Tanques.render();
   }
 
