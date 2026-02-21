@@ -30,7 +30,7 @@ const Tanques = {
         .equals(t.id)
         .toArray();
 
-      let pesoAtual = t.pesoInicial;
+      let pesoAtual = t.pesoInicial || 0;
 
       if (pesagens.length > 0) {
         pesoAtual = pesagens[pesagens.length - 1].pesoMedio;
@@ -46,8 +46,11 @@ const Tanques = {
         ? ganhoTotal / mesesPassados
         : 0;
 
-      const faltaParaMeta = t.metaPeso - pesoAtual;
-      const mesesRestantes = t.mesesMeta - mesesPassados;
+      const metaPeso = t.metaPeso || 0;
+      const mesesMeta = t.mesesMeta || 6; // padrão automático
+
+      const faltaParaMeta = metaPeso - pesoAtual;
+      const mesesRestantes = mesesMeta - mesesPassados;
 
       const necessarioPorMes = mesesRestantes > 0
         ? faltaParaMeta / mesesRestantes
@@ -56,6 +59,7 @@ const Tanques = {
       const biomassaKg = (pesoAtual * t.quantidade) / 1000;
 
       let status = "Dentro da média";
+
       if (ganhoMensalAtual < necessarioPorMes) {
         status = "⚠️ Crescimento abaixo da meta";
       } else if (ganhoMensalAtual > necessarioPorMes) {
@@ -70,7 +74,7 @@ const Tanques = {
 
           Peso Atual: ${pesoAtual.toFixed(2)} g<br>
           Ganho Total: ${ganhoTotal.toFixed(2)} g<br>
-          Meta Final: ${t.metaPeso} g<br>
+          Meta Final: ${metaPeso} g<br>
           Falta para Meta: ${faltaParaMeta.toFixed(2)} g<br><br>
 
           📅 Meses Passados: ${mesesPassados.toFixed(1)}<br>
@@ -100,9 +104,9 @@ const Tanques = {
     const quantidade = parseInt(document.getElementById("quantidade").value);
     const pesoInicial = parseFloat(document.getElementById("pesoInicial").value);
     const metaPeso = parseFloat(document.getElementById("metaPeso").value);
-    const mesesMeta = parseFloat(document.getElementById("mesesMeta").value);
+    const mesesMeta = parseFloat(document.getElementById("mesesMeta").value) || 6;
 
-    if (!nome || !especie || !quantidade || !pesoInicial || !metaPeso || !mesesMeta) {
+    if (!nome || !especie || !quantidade || !pesoInicial || !metaPeso) {
       alert("Preencha todos os campos");
       return;
     }
