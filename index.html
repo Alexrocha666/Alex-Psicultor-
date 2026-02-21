@@ -4,7 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Alex Psicultor Pro</title>
+
 <link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -23,17 +25,20 @@
 
 <section id="dashboard" class="page active">
   <div id="dashboardContent"></div>
+  <canvas id="graficoDashboard" style="max-width:100%;margin-top:20px;"></canvas>
 </section>
 
 <section id="tanques" class="page">
-  <div id="tanquesContent">
-      <div id="areaTanques"></div>
-      <button onclick="adicionarTanque()">+ Adicionar Tanque</button>
-  </div>
+  <div id="tanquesContent"></div>
+  <button onclick="adicionarTanque()">+ Novo Tanque</button>
 </section>
 
 <section id="financeiro" class="page">
-  <div id="financeiroContent"></div>
+  <div id="financeiroContent">
+    <div id="areaFinanceiro"></div>
+    <button onclick="adicionarLancamento()">+ Novo Lançamento</button>
+    <canvas id="graficoFinanceiro" style="max-width:100%;margin-top:20px;"></canvas>
+  </div>
 </section>
 
 <section id="metas" class="page">
@@ -42,182 +47,161 @@
 
 <script>
 // ===============================
-// ALEX PSICULTOR PRO - TANQUES
+// APP ALEX PSICULTOR PRO
 // ===============================
 
-// Carregar tanques salvos ou criar array vazio
+// ---------- Dados ----------
 let tanques = JSON.parse(localStorage.getItem("tanques")) || [];
+let lancamentos = JSON.parse(localStorage.getItem("lancamentos")) || [];
 
-// Salvar no navegador
-function salvarTanques() {
-    localStorage.setItem("tanques", JSON.stringify(tanques));
-}
+// ---------- Salvar ----------
+function salvarTanques() { localStorage.setItem("tanques", JSON.stringify(tanques)); }
+function salvarLancamentos() { localStorage.setItem("lancamentos", JSON.stringify(lancamentos)); }
 
-// Mostrar tanques na tela
+// ===============================
+// TANQUES
+// ===============================
 function mostrarTanques() {
-    const area = document.getElementById("areaTanques");
+    const area = document.getElementById("tanquesContent");
     area.innerHTML = "";
-
-    if (tanques.length === 0) {
-        area.innerHTML = "<p style='color:white'>Nenhum tanque cadastrado.</p>";
-        return;
-    }
-
-    tanques.forEach((tanque, index) => {
-        // Histórico resumido
-        let historicoHTML = "";
-        if (tanque.historico.length > 0) {
-            historicoHTML = "<ul style='margin-left:20px;'>";
-            tanque.historico.forEach(h => {
-                historicoHTML += `<li>${h.data}: ${h.peso} g</li>`;
-            });
-            historicoHTML += "</ul>";
-        }
-
-        // Cálculos
-        const ultimoPeso = tanque.historico.length > 0 ? tanque.historico[tanque.historico.length - 1].peso : tanque.pesoMedio;
-        const ganhoTotal = ultimoPeso - tanque.pesoMedio;
-        const faltaMeta = (tanque.metaPeso || 1000) - ultimoPeso;
-        
-        // Ganho médio mensal
-        let ganhoMedioMensal = 0;
-        if (tanque.historico.length > 1) {
-            const primeiraData = new Date(tanque.historico[0].data);
-            const ultimaData = new Date(tanque.historico[tanque.historico.length - 1].data);
-            const mesesPassados = ((ultimaData.getFullYear() - primeiraData.getFullYear()) * 12) + (ultimaData.getMonth() - primeiraData.getMonth()) + 1;
-            ganhoMedioMensal = ganhoTotal / mesesPassados;
-        }
-
-        // Status
-        let status = ganhoTotal >= faltaMeta ? "🚀 Acima da meta" : "⚠️ Crescimento abaixo da meta";
-
-        area.innerHTML += `
+    if(tanques.length===0){ area.innerHTML="<p style='color:white'>Nenhum tanque cadastrado.</p>"; return; }
+    tanques.forEach((tanque,index)=>{
+        let histHTML=""; if(tanque.historico.length>0){ histHTML="<ul>"; tanque.historico.forEach(h=>{ histHTML+=`<li>${h.data}: ${h.peso} g</li>` }); histHTML+="</ul>"; }
+        let racaoHTML=""; if(tanque.historicoRacao.length>0){ racaoHTML="<ul>"; tanque.historicoRacao.forEach(r=>{ racaoHTML+=`<li>${r.data}: ${r.quantidade} kg (R$ ${r.valor.toFixed(2)})</li>` }); racaoHTML+="</ul>"; }
+        area.innerHTML+=`
             <div style="background:#1e3a5f; padding:15px; margin:10px; border-radius:10px; color:white;">
                 <h3>${tanque.nome}</h3>
                 <p><strong>Peixes:</strong> ${tanque.quantidade}</p>
-                <p><strong>Peso Atual:</strong> ${ultimoPeso.toFixed(2)} g</p>
-                <p><strong>Ganho Total:</strong> ${ganhoTotal.toFixed(2)} g</p>
-                <p><strong>Meta Final:</strong> ${tanque.metaPeso || 1000} g</p>
-                <p><strong>Falta para Meta:</strong> ${faltaMeta.toFixed(2)} g</p>
-                <p><strong>Ganho Médio Mensal:</strong> ${ganhoMedioMensal.toFixed(2)} g</p>
-                <p><strong>Status:</strong> ${status}</p>
-                ${historicoHTML}
+                <p><strong>Peso Atual:</strong> ${tanque.pesoMedio} g</p>
+                ${histHTML}
+                <p><strong>Ração:</strong></p>${racaoHTML}
                 <button onclick="adicionarPesagem(${index})">Adicionar Pesagem</button>
+                <button onclick="registrarRacao(${index})" style="background:#ff9800;color:white;margin-left:5px;">Registrar Ração</button>
                 <button onclick="removerTanque(${index})" style="background:red;color:white;margin-left:5px;">Excluir</button>
             </div>
         `;
     });
 }
 
-// Adicionar tanque
-function adicionarTanque() {
-    const nome = prompt("Nome do tanque:");
-    const quantidade = parseInt(prompt("Quantidade de peixes:"));
-    const pesoMedio = parseFloat(prompt("Peso médio inicial (g):"));
-    const metaPeso = parseFloat(prompt("Meta final (g):"));
+function adicionarTanque(){
+    const nome=prompt("Nome do tanque:");
+    const quantidade=parseInt(prompt("Quantidade de peixes:"));
+    const pesoMedio=parseFloat(prompt("Peso médio inicial (g):"));
+    if(!nome||!quantidade||!pesoMedio){ alert("Preencha todos os campos corretamente!"); return; }
+    tanques.push({nome,quantidade,pesoMedio,historico:[],historicoRacao:[]});
+    salvarTanques(); mostrarTanques();
+}
 
-    if (!nome || !quantidade || !pesoMedio || !metaPeso) {
-        alert("Preencha todos os campos corretamente!");
-        return;
-    }
+function adicionarPesagem(index){
+    const novoPeso=parseFloat(prompt("Novo peso médio (g):"));
+    const dataPesagem=prompt("Data da pesagem (dd/mm/aaaa):", new Date().toLocaleDateString());
+    if(!novoPeso||!dataPesagem){ alert("Digite valores válidos!"); return; }
+    const tanque=tanques[index];
+    tanque.historico.push({data:dataPesagem,peso:novoPeso});
+    tanque.pesoMedio=novoPeso;
+    salvarTanques(); mostrarTanques(); alert("Pesagem salva com sucesso!");
+}
 
-    tanques.push({
-        nome,
-        quantidade,
-        pesoMedio,
-        metaPeso,
-        historico: []
+function registrarRacao(index){
+    const tanque=tanques[index];
+    const quantidadeRacao=parseFloat(prompt(`Quantos kg de ração para o tanque "${tanque.nome}"?`));
+    const valorRacao=parseFloat(prompt("Valor total dessa ração (R$)?"));
+    const dataRacao=prompt("Data da ração (dd/mm/aaaa):", new Date().toLocaleDateString());
+    if(!quantidadeRacao||!valorRacao||!dataRacao){ alert("Digite valores válidos!"); return; }
+    tanque.historicoRacao.push({data:dataRacao,quantidade:quantidadeRacao,valor:valorRacao});
+    lancamentos.push({tipo:"saída",descricao:`Ração tanque ${tanque.nome} - ${quantidadeRacao} kg`,valor:valorRacao,data:dataRacao,gastoRacao:true});
+    salvarTanques(); salvarLancamentos(); mostrarTanques(); mostrarFinanceiro(); alert("Ração registrada e adicionada ao financeiro!");
+}
+
+function removerTanque(index){ if(confirm("Deseja realmente excluir este tanque?")){ tanques.splice(index,1); salvarTanques(); mostrarTanques(); } }
+
+// ===============================
+// FINANCEIRO
+// ===============================
+function mostrarFinanceiro(){
+    const area=document.getElementById("areaFinanceiro");
+    area.innerHTML="";
+    if(lancamentos.length===0){ area.innerHTML="<p style='color:white'>Nenhum lançamento registrado.</p>"; atualizarGraficoFinanceiro(); return; }
+    let saldo=0; let html="<table style='width:100%; color:white; font-size:14px;'><tr><th>Data</th><th>Descrição</th><th>Valor</th><th>Ações</th></tr>";
+    lancamentos.forEach((l,index)=>{ saldo+=l.tipo==="entrada"?l.valor:-l.valor; html+=`<tr><td>${l.data}</td><td>${l.descricao}</td><td style="color:${l.tipo==="entrada"?'#4caf50':'#f44336'}">${l.tipo==='entrada'?'+':'-'} R$ ${l.valor.toFixed(2)}${l.gastoRacao?' (Ração)':''}</td><td><button onclick="removerLancamento(${index})" style="background:red;color:white;">🗑️</button></td></tr>`; });
+    html+="</table>";
+    html+=`<p><strong>Saldo Atual:</strong> R$ ${saldo.toFixed(2)}</p>`;
+    area.innerHTML=html;
+    atualizarGraficoFinanceiro();
+}
+
+function adicionarLancamento(){
+    const tipo=prompt("Tipo de lançamento (entrada / saída / ração):").toLowerCase();
+    if(tipo!=="entrada"&&tipo!=="saída"&&tipo!=="ração"){ alert("Digite 'entrada', 'saída' ou 'ração'"); return; }
+    const descricao=prompt("Descrição do lançamento:"); if(!descricao){ alert("Digite uma descrição"); return; }
+    const valor=parseFloat(prompt("Valor do lançamento (R$):")); if(!valor||valor<=0){ alert("Valor inválido"); return; }
+    const data=prompt("Data do lançamento (dd/mm/aaaa):", new Date().toLocaleDateString());
+    lancamentos.push({tipo:tipo==="ração"?"saída":tipo,descricao,valor,data,gastoRacao:tipo==="ração"});
+    salvarLancamentos(); mostrarFinanceiro();
+}
+
+function removerLancamento(index){ if(confirm("Deseja realmente remover este lançamento?")){ lancamentos.splice(index,1); salvarLancamentos(); mostrarFinanceiro(); } }
+
+// ===============================
+// DASHBOARD AVANÇADO
+// ===============================
+function mostrarDashboard(){
+    const area=document.getElementById("dashboardContent");
+    area.innerHTML="";
+    const labels=[]; const dataLucro=[]; const dataRacao=[]; const dataEntrada=[]; const dataSaida=[];
+    tanques.forEach(tanque=>{
+        let custoRacao=0; if(tanque.historicoRacao)tanque.historicoRacao.forEach(r=>{custoRacao+=r.valor;});
+        const precoVenda=15;
+        const pesoAtualKg=tanque.pesoMedio*tanque.quantidade/1000;
+        const receita=pesoAtualKg*precoVenda;
+        const lucroLiquido=receita-custoRacao;
+        area.innerHTML+=`<div style="background:#1e3a5f; padding:15px; margin:10px; border-radius:10px; color:white;"><h3>${tanque.nome}</h3><p>Receita Estimada: R$ ${receita.toFixed(2)}</p><p>Custo Ração: R$ ${custoRacao.toFixed(2)}</p><p><strong>Lucro Líquido:</strong> R$ ${lucroLiquido.toFixed(2)}</p></div>`;
+        labels.push(tanque.nome); dataLucro.push(lucroLiquido.toFixed(2)); dataRacao.push(custoRacao.toFixed(2));
     });
-
-    salvarTanques();
-    mostrarTanques();
+    // Gráfico
+    const ctx=document.getElementById("graficoDashboard").getContext('2d');
+    if(window.graficoDashboardInstance) window.graficoDashboardInstance.destroy();
+    window.graficoDashboardInstance=new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'Lucro Líquido (R$)',data:dataLucro,backgroundColor:'#4caf50'},{label:'Custo Ração (R$)',data:dataRacao,backgroundColor:'#ff9800'}]},options:{responsive:true,plugins:{legend:{position:'top',labels:{color:'white'}}},scales:{x:{ticks:{color:'white'}},y:{ticks:{color:'white'},beginAtZero:true}}}});
 }
 
-// Adicionar pesagem
-function adicionarPesagem(index) {
-    const novoPeso = parseFloat(prompt("Novo peso médio (g):"));
-    const dataPesagem = prompt("Data da pesagem (dd/mm/aaaa):", new Date().toLocaleDateString());
-
-    if (!novoPeso || !dataPesagem) {
-        alert("Digite valores válidos!");
-        return;
-    }
-
-    const tanque = tanques[index];
-
-    tanque.historico.push({
-        data: dataPesagem,
-        peso: novoPeso
+// Gráfico financeiro mensal
+function atualizarGraficoFinanceiro(){
+    const ctx=document.getElementById('graficoFinanceiro').getContext('2d');
+    const meses={};
+    lancamentos.forEach(l=>{
+        const m=l.data.split('/')[1]+'/'+l.data.split('/')[2];
+        if(!meses[m])meses[m]={entrada:0,saida:0,racao:0};
+        if(l.gastoRacao)meses[m].racao+=l.valor;
+        else if(l.tipo==='entrada')meses[m].entrada+=l.valor;
+        else meses[m].saida+=l.valor;
     });
-
-    tanque.pesoMedio = novoPeso;
-
-    salvarTanques();
-    mostrarTanques();
-
-    alert("Pesagem salva com sucesso!");
+    const labels=Object.keys(meses);
+    const dataEntrada=labels.map(l=>meses[l].entrada);
+    const dataSaida=labels.map(l=>meses[l].saida);
+    const dataRacao=labels.map(l=>meses[l].racao);
+    if(window.graficoFinanceiroInstance) window.graficoFinanceiroInstance.destroy();
+    window.graficoFinanceiroInstance=new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'Entradas',data:dataEntrada,backgroundColor:'#4caf50'},{label:'Saídas',data:dataSaida,backgroundColor:'#f44336'},{label:'Ração',data:dataRacao,backgroundColor:'#ff9800'}]},options:{responsive:true,plugins:{legend:{position:'top',labels:{color:'white'}}},scales:{x:{ticks:{color:'white'}},y:{ticks:{color:'white'},beginAtZero:true}}}});
 }
 
-// Remover tanque
-function removerTanque(index) {
-    if (confirm("Deseja realmente excluir este tanque?")) {
-        tanques.splice(index, 1);
-        salvarTanques();
-        mostrarTanques();
-    }
-}
+// ===============================
+// Inicialização
+// ===============================
+document.addEventListener("DOMContentLoaded",function(){ mostrarTanques(); mostrarFinanceiro(); mostrarDashboard(); });
 
-// Inicializar ao abrir
-document.addEventListener("DOMContentLoaded", function() {
-    mostrarTanques();
-});
-
-// Navegação simples entre páginas
-const App = {
-    navigate: function(pageId) {
-        document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
-        document.getElementById(pageId).classList.add("active");
-    }
-};
+// ===============================
+// Navegação simples
+// ===============================
+const App={navigate:function(pageId){document.querySelectorAll(".page").forEach(p=>p.classList.remove("active")); document.getElementById(pageId).classList.add("active");}};
 </script>
 
 <style>
-body {
-    background:#0f1e38;
-    color:white;
-    font-family:sans-serif;
-    margin:0;
-    padding:0;
-}
-header {
-    background:#1e3a5f;
-    padding:15px;
-    text-align:center;
-}
-nav {
-    display:flex;
-    justify-content:center;
-    margin:10px 0;
-}
-nav button {
-    margin:0 5px;
-    padding:10px 20px;
-    background:#1e3a5f;
-    color:white;
-    border:none;
-    border-radius:5px;
-    cursor:pointer;
-}
-nav button:hover {
-    background:#274c7b;
-}
-.page {
-    display:none;
-    padding:15px;
-}
-.page.active {
-    display:block;
-}
+body{background:#0f1e38;color:white;font-family:sans-serif;margin:0;padding:0;}
+header{background:#1e3a5f;padding:15px;text-align:center;}
+nav{display:flex;justify-content:center;margin:10px 0;}
+nav button{margin:0 5px;padding:10px 20px;background:#1e3a5f;color:white;border:none;border-radius:5px;cursor:pointer;}
+nav button:hover{background:#274c7b;}
+.page{display:none;padding:15px;}
+.page.active{display:block;}
 </style>
 
 </body>
