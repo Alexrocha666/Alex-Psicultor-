@@ -1,32 +1,202 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Alex Psicultor</title>
-<link rel="stylesheet" href="style.css">
-<link rel="manifest" href="manifest.json">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body{
+margin:0;
+font-family:Arial, sans-serif;
+background:linear-gradient(180deg,#0b1d3a,#08142a);
+color:white;
+}
+
+header{
+background:#0f274d;
+padding:15px;
+text-align:center;
+font-size:22px;
+font-weight:bold;
+}
+
+.container{
+padding:15px;
+}
+
+.card{
+background:#132c52;
+padding:15px;
+border-radius:10px;
+margin-bottom:15px;
+box-shadow:0 4px 8px rgba(0,0,0,0.4);
+}
+
+input, select{
+width:100%;
+padding:10px;
+margin-top:5px;
+margin-bottom:10px;
+border-radius:8px;
+border:none;
+}
+
+button{
+width:100%;
+padding:12px;
+background:#1e90ff;
+color:white;
+border:none;
+border-radius:8px;
+font-weight:bold;
+cursor:pointer;
+}
+
+button:hover{
+background:#187bcd;
+}
+
+.list-item{
+background:#0f274d;
+padding:10px;
+margin-top:10px;
+border-radius:8px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.small-btn{
+width:auto;
+padding:5px 10px;
+font-size:12px;
+background:red;
+}
+
+nav{
+position:fixed;
+bottom:0;
+width:100%;
+background:#0f274d;
+display:flex;
+justify-content:space-around;
+padding:10px 0;
+}
+
+nav button{
+background:none;
+color:white;
+border:none;
+font-size:16px;
+}
+</style>
 </head>
 <body>
 
 <header>🐟 Alex Psicultor</header>
 
-<main id="conteudo"></main>
+<div class="container">
 
-<nav class="menu">
-<button onclick="carregarDashboard()">🏠</button>
-<button onclick="carregarTanques()">🐟</button>
-<button onclick="carregarFinanceiro()">💰</button>
-<button onclick="carregarRacao()">📦</button>
-<button onclick="carregarRelatorios()">📊</button>
+<div id="home">
+<div class="card">
+<h3>Resumo</h3>
+<p>Total Entradas: R$ <span id="totalEntradas">0</span></p>
+<p>Total Saídas: R$ <span id="totalSaidas">0</span></p>
+<p>Lucro: R$ <span id="lucro">0</span></p>
+</div>
+</div>
+
+<div id="lancamento" style="display:none;">
+<div class="card">
+<h3>Novo Lançamento</h3>
+
+<select id="tipo">
+<option value="entrada">Entrada</option>
+<option value="saida">Saída</option>
+</select>
+
+<input type="text" id="descricao" placeholder="Descrição">
+<input type="number" id="valor" placeholder="Valor">
+
+<button onclick="salvar()">Salvar</button>
+
+</div>
+
+<div id="lista"></div>
+</div>
+
+</div>
+
+<nav>
+<button onclick="mostrar('home')">🏠</button>
+<button onclick="mostrar('lancamento')">💰</button>
 </nav>
 
-<script src="app.js"></script>
 <script>
-if ("serviceWorker" in navigator) {
-navigator.serviceWorker.register("service-worker.js");
+
+let dados = JSON.parse(localStorage.getItem("psicultor")) || [];
+
+function mostrar(secao){
+document.getElementById("home").style.display="none";
+document.getElementById("lancamento").style.display="none";
+document.getElementById(secao).style.display="block";
 }
+
+function salvar(){
+let tipo = document.getElementById("tipo").value;
+let descricao = document.getElementById("descricao").value;
+let valor = parseFloat(document.getElementById("valor").value);
+
+if(!descricao || !valor){
+alert("Preencha todos os campos!");
+return;
+}
+
+dados.push({tipo,descricao,valor});
+localStorage.setItem("psicultor",JSON.stringify(dados));
+
+document.getElementById("descricao").value="";
+document.getElementById("valor").value="";
+
+atualizar();
+}
+
+function remover(index){
+dados.splice(index,1);
+localStorage.setItem("psicultor",JSON.stringify(dados));
+atualizar();
+}
+
+function atualizar(){
+let lista = document.getElementById("lista");
+lista.innerHTML="";
+
+let totalEntradas=0;
+let totalSaidas=0;
+
+dados.forEach((item,index)=>{
+if(item.tipo=="entrada") totalEntradas+=item.valor;
+else totalSaidas+=item.valor;
+
+lista.innerHTML+=`
+<div class="list-item">
+<div>
+<strong>${item.descricao}</strong><br>
+R$ ${item.valor}
+</div>
+<button class="small-btn" onclick="remover(${index})">X</button>
+</div>
+`;
+});
+
+document.getElementById("totalEntradas").innerText=totalEntradas;
+document.getElementById("totalSaidas").innerText=totalSaidas;
+document.getElementById("lucro").innerText=(totalEntradas-totalSaidas);
+}
+
+atualizar();
+
 </script>
 
 </body>
