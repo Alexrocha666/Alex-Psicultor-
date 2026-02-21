@@ -2,70 +2,93 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Alex Psicultor</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alex Psicultor</title>
 <link rel="stylesheet" href="style.css">
 <link rel="manifest" href="manifest.json">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
 <h1>🐟 Alex Psicultor</h1>
 
-<div class="card">
-<h2>📊 Dashboard</h2>
-<p>💰 Lucro Total: R$ <span id="lucroTotal">0</span></p>
-<p>📉 Despesas: R$ <span id="totalDespesas">0</span></p>
-<p>📈 Receitas: R$ <span id="totalReceitas">0</span></p>
-<p>🐟 Biomassa Total: <span id="biomassaTotal">0</span> kg</p>
+<div class="tabs">
+<button onclick="mostrar('dashboard')">Dashboard</button>
+<button onclick="mostrar('tanques')">Tanques</button>
+<button onclick="mostrar('financeiro')">Financeiro</button>
+<button onclick="mostrar('racao')">Ração</button>
+<button onclick="mostrar('relatorios')">Relatórios</button>
 </div>
 
+<div id="dashboard" class="aba">
 <div class="card">
-<h2>➕ Cadastrar Tanque</h2>
-<input id="nomeTanque" placeholder="Nome do tanque">
-<input id="qtdPeixes" type="number" placeholder="Quantidade de peixes">
+<h2>Resumo</h2>
+<p>Receitas: R$ <span id="receitasTotal">0</span></p>
+<p>Despesas: R$ <span id="despesasTotal">0</span></p>
+<p>Lucro: R$ <span id="lucroTotal">0</span></p>
+<p>Biomassa Total: <span id="biomassaTotal">0</span> kg</p>
+<p>Custo por Kg: R$ <span id="custoKg">0</span></p>
+<p>Eficiência: <span id="eficiencia">0</span>%</p>
+</div>
+<canvas id="grafico"></canvas>
+</div>
+
+<div id="tanques" class="aba oculto">
+<div class="card">
+<h2>Novo Tanque</h2>
+<input id="nomeTanque" placeholder="Nome">
+<input id="qtdPeixes" type="number" placeholder="Quantidade">
 <input id="pesoMedio" type="number" placeholder="Peso médio (kg)">
-<button onclick="salvarTanque()">Salvar Tanque</button>
+<button onclick="salvarTanque()">Salvar</button>
 </div>
-
-<div class="card">
-<h2>💸 Registrar Despesa</h2>
-<input id="descDespesa" placeholder="Descrição">
-<input id="valorDespesa" type="number" placeholder="Valor">
-<button onclick="salvarDespesa()">Salvar Despesa</button>
-</div>
-
-<div class="card">
-<h2>💰 Registrar Receita</h2>
-<input id="descReceita" placeholder="Descrição">
-<input id="valorReceita" type="number" placeholder="Valor">
-<button onclick="salvarReceita()">Salvar Receita</button>
-</div>
-
-<div class="card">
-<h2>🐟 Tanques Cadastrados</h2>
 <ul id="listaTanques"></ul>
 </div>
 
-<script src="app.js"></script>
+<div id="financeiro" class="aba oculto">
+<div class="card">
+<h2>Nova Receita</h2>
+<input id="descReceita" placeholder="Descrição">
+<input id="valorReceita" type="number" placeholder="Valor">
+<button onclick="salvarReceita()">Salvar</button>
+</div>
 
+<div class="card">
+<h2>Nova Despesa</h2>
+<input id="descDespesa" placeholder="Descrição">
+<input id="valorDespesa" type="number" placeholder="Valor">
+<button onclick="salvarDespesa()">Salvar</button>
+</div>
+
+<h3>Receitas</h3>
+<ul id="listaReceitas"></ul>
+
+<h3>Despesas</h3>
+<ul id="listaDespesas"></ul>
+</div>
+
+<div id="racao" class="aba oculto">
+<div class="card">
+<h2>Estoque de Ração</h2>
+<input id="sacosRacao" type="number" placeholder="Quantidade de sacos">
+<input id="precoSaco" type="number" placeholder="Preço por saco">
+<button onclick="salvarRacao()">Salvar</button>
+<p>Total em estoque: <span id="estoqueRacao">0</span> sacos</p>
+</div>
+</div>
+
+<div id="relatorios" class="aba oculto">
+<div class="card">
+<button onclick="exportarBackup()">Exportar Backup</button>
+<input type="file" onchange="importarBackup(event)">
+</div>
+</div>
+
+<script src="app.js"></script>
 <script>
 if ("serviceWorker" in navigator) {
 navigator.serviceWorker.register("service-worker.js");
 }
 </script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<div class="card">
-<h2>📊 Gráfico Financeiro</h2>
-<canvas id="graficoFinanceiro"></canvas>
-</div>
-
-<div class="card">
-<h2>📈 Indicadores</h2>
-<p>💵 Custo por Kg: R$ <span id="custoKg">0</span></p>
-<p>📊 Eficiência Produtiva: <span id="eficiencia">0</span>%</p>
-<p>🚀 Projeção de Lucro: R$ <span id="projecao">0</span></p>
-</div>
 
 </body>
-                       </html>
+</html>
