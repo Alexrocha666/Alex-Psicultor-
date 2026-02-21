@@ -10,78 +10,17 @@
 </head>
 <body>
 
-<h1>🐟 Alex Psicultor</h1>
+<header>🐟 Alex Psicultor</header>
 
-<div class="tabs">
-<button onclick="mostrar('dashboard')">Dashboard</button>
-<button onclick="mostrar('tanques')">Tanques</button>
-<button onclick="mostrar('financeiro')">Financeiro</button>
-<button onclick="mostrar('racao')">Ração</button>
-<button onclick="mostrar('relatorios')">Relatórios</button>
-</div>
+<main id="conteudo"></main>
 
-<div id="dashboard" class="aba">
-<div class="card">
-<h2>Resumo</h2>
-<p>Receitas: R$ <span id="receitasTotal">0</span></p>
-<p>Despesas: R$ <span id="despesasTotal">0</span></p>
-<p>Lucro: R$ <span id="lucroTotal">0</span></p>
-<p>Biomassa Total: <span id="biomassaTotal">0</span> kg</p>
-<p>Custo por Kg: R$ <span id="custoKg">0</span></p>
-<p>Eficiência: <span id="eficiencia">0</span>%</p>
-</div>
-<canvas id="grafico"></canvas>
-</div>
-
-<div id="tanques" class="aba oculto">
-<div class="card">
-<h2>Novo Tanque</h2>
-<input id="nomeTanque" placeholder="Nome">
-<input id="qtdPeixes" type="number" placeholder="Quantidade">
-<input id="pesoMedio" type="number" placeholder="Peso médio (kg)">
-<button onclick="salvarTanque()">Salvar</button>
-</div>
-<ul id="listaTanques"></ul>
-</div>
-
-<div id="financeiro" class="aba oculto">
-<div class="card">
-<h2>Nova Receita</h2>
-<input id="descReceita" placeholder="Descrição">
-<input id="valorReceita" type="number" placeholder="Valor">
-<button onclick="salvarReceita()">Salvar</button>
-</div>
-
-<div class="card">
-<h2>Nova Despesa</h2>
-<input id="descDespesa" placeholder="Descrição">
-<input id="valorDespesa" type="number" placeholder="Valor">
-<button onclick="salvarDespesa()">Salvar</button>
-</div>
-
-<h3>Receitas</h3>
-<ul id="listaReceitas"></ul>
-
-<h3>Despesas</h3>
-<ul id="listaDespesas"></ul>
-</div>
-
-<div id="racao" class="aba oculto">
-<div class="card">
-<h2>Estoque de Ração</h2>
-<input id="sacosRacao" type="number" placeholder="Quantidade de sacos">
-<input id="precoSaco" type="number" placeholder="Preço por saco">
-<button onclick="salvarRacao()">Salvar</button>
-<p>Total em estoque: <span id="estoqueRacao">0</span> sacos</p>
-</div>
-</div>
-
-<div id="relatorios" class="aba oculto">
-<div class="card">
-<button onclick="exportarBackup()">Exportar Backup</button>
-<input type="file" onchange="importarBackup(event)">
-</div>
-</div>
+<nav class="menu">
+<button onclick="carregarDashboard()">🏠</button>
+<button onclick="carregarTanques()">🐟</button>
+<button onclick="carregarFinanceiro()">💰</button>
+<button onclick="carregarRacao()">📦</button>
+<button onclick="carregarRelatorios()">📊</button>
+</nav>
 
 <script src="app.js"></script>
 <script>
