@@ -1,23 +1,29 @@
-body {
+body{
 background:#0f172a;
 color:white;
 font-family:Arial;
 padding:15px;
 }
 
-h1 {
-text-align:center;
+h1{text-align:center;}
+
+.tabs button{
+margin:5px;
+padding:10px;
+border:none;
+border-radius:8px;
+background:#1e293b;
+color:white;
 }
 
-.card {
+.card{
 background:#1e293b;
 padding:15px;
-margin:15px 0;
+margin:10px 0;
 border-radius:12px;
-box-shadow:0 0 10px rgba(0,0,0,0.5);
 }
 
-input {
+input,button{
 width:100%;
 padding:10px;
 margin:5px 0;
@@ -25,13 +31,21 @@ border-radius:8px;
 border:none;
 }
 
-button {
-width:100%;
-padding:10px;
-margin-top:8px;
-border:none;
-border-radius:8px;
+button{
 background:#10b981;
 color:white;
 font-weight:bold;
 }
+
+ul{list-style:none;padding:0;}
+
+li{
+background:#334155;
+padding:8px;
+margin:5px 0;
+border-radius:8px;
+display:flex;
+justify-content:space-between;
+}
+
+.oculto{display:none;}
