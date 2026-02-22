@@ -13,6 +13,7 @@
 
 <header>
   <h1>🐟 Alex Piscicultor Pro</h1>
+  <p>Sistema Inteligente de Piscicultura</p>
 </header>
 
 <nav>
@@ -25,23 +26,23 @@
 
 <section id="dashboard" class="page active">
   <div id="dashboardContent"></div>
-  <canvas id="graficoDashboard" style="max-width:100%;margin-top:20px;"></canvas>
 </section>
 
 <section id="tanques" class="page">
   <div id="areaTanques"></div>
-  <button onclick="adicionarTanque()">+ Adicionar Tanque</button>
+  <button class="btn-add" onclick="adicionarTanque()">+ Novo Tanque</button>
 </section>
 
 <section id="financeiro" class="page">
   <div id="areaFinanceiro"></div>
-  <button onclick="adicionarLancamento()">+ Novo Lançamento</button>
-  <canvas id="graficoFinanceiro" style="max-width:100%;margin-top:20px;"></canvas>
+  <button class="btn-add" onclick="adicionarLancamento()">+ Novo Lançamento</button>
 </section>
 
+</main>
+
+<script src="js/app.js"></script>
 <script src="js/financeiro.js"></script>
 <script src="js/tanques.js"></script>
-<script src="js/app.js"></script>
 
 </body>
 </html>
