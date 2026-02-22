@@ -1,4 +1,3 @@
-alert("Tanques PRO carregado");
 // ===============================
 // ALEX PSICULTOR PRO - TANQUES PRO
 // ===============================
@@ -10,14 +9,11 @@ function salvarTanques() {
 }
 
 function mostrarTanques() {
-    const area = document.getElementById("tanquesContent");
+    const area = document.getElementById("areaTanques");
     area.innerHTML = "";
 
     if (tanques.length === 0) {
-        area.innerHTML = `
-            <button onclick="novoTanque()" class="btn-add">+ Novo Tanque</button>
-            <p style="text-align:center;opacity:0.7;">Nenhum tanque cadastrado.</p>
-        `;
+        area.innerHTML = `<p style="opacity:0.7;">Nenhum tanque cadastrado.</p>`;
         return;
     }
 
@@ -25,17 +21,13 @@ function mostrarTanques() {
 
         let cor = "green";
 
-        if (tanque.historico.length > 1) {
+        if (tanque.historico && tanque.historico.length > 1) {
             const ultimo = tanque.historico[tanque.historico.length - 1].peso;
             const anterior = tanque.historico[tanque.historico.length - 2].peso;
 
-            if (ultimo > anterior) {
-                cor = "green";
-            } else if (ultimo === anterior) {
-                cor = "orange";
-            } else {
-                cor = "red";
-            }
+            if (ultimo > anterior) cor = "green";
+            else if (ultimo === anterior) cor = "orange";
+            else cor = "red";
         }
 
         area.innerHTML += `
@@ -45,11 +37,9 @@ function mostrarTanques() {
                 <p>Peso médio: ${tanque.peso} g</p>
                 <p><strong>Observações:</strong> ${tanque.observacoes || "Nenhuma"}</p>
 
-                <div style="background:#ddd;height:10px;border-radius:5px;">
+                <div style="background:#ddd;height:10px;border-radius:5px;margin:8px 0;">
                     <div style="width:${tanque.peso / 10}%;height:10px;background:${cor};border-radius:5px;"></div>
                 </div>
-
-                <br>
 
                 <button onclick="adicionarSemana(${index})">Passagem Semanal</button>
                 <button onclick="editarObservacao(${index})">Observação</button>
@@ -58,11 +48,9 @@ function mostrarTanques() {
             </div>
         `;
     });
-
-    area.innerHTML += `<button onclick="novoTanque()" class="btn-add">+ Novo Tanque</button>`;
 }
 
-function novoTanque() {
+function adicionarTanque() {
     const nome = prompt("Nome do tanque:");
     const peixes = parseInt(prompt("Quantidade de peixes:"));
     const peso = parseFloat(prompt("Peso médio inicial (g):"));
@@ -92,8 +80,9 @@ function adicionarSemana(index) {
     if (!novoPeso) return;
 
     const tanque = tanques[index];
-
     tanque.peso = novoPeso;
+
+    if (!tanque.historico) tanque.historico = [];
 
     tanque.historico.push({
         semana: tanque.historico.length + 1,
@@ -104,6 +93,40 @@ function adicionarSemana(index) {
     salvarTanques();
     mostrarTanques();
 }
+
+function editarObservacao(index) {
+    const obs = prompt("Digite a observação:");
+    tanques[index].observacoes = obs;
+    salvarTanques();
+    mostrarTanques();
+}
+
+function verHistorico(index) {
+    const tanque = tanques[index];
+
+    if (!tanque.historico) {
+        alert("Sem histórico ainda.");
+        return;
+    }
+
+    let texto = "Histórico:\n\n";
+
+    tanque.historico.forEach(item => {
+        texto += `Semana ${item.semana} - ${item.peso}g - ${item.data}\n`;
+    });
+
+    alert(texto);
+}
+
+function removerTanque(index) {
+    if (confirm("Excluir tanque?")) {
+        tanques.splice(index, 1);
+        salvarTanques();
+        mostrarTanques();
+    }
+}
+
+document.addEventListener("DOMContentLoaded", mostrarTanques);}
 
 function editarObservacao(index) {
     const obs = prompt("Digite a observação:");
