@@ -1,173 +1,129 @@
-const Tanques = {
+let tanques = JSON.parse(localStorage.getItem("tanques")) || [];
 
-  async render() {
+function salvarTanques(){
+    localStorage.setItem("tanques", JSON.stringify(tanques));
+}
 
-    const container = document.getElementById("tanquesContent");
+function mostrarTanques(){
+    const area=document.getElementById("areaTanques");
+    area.innerHTML="";
 
-    try {
-
-      const lista = await db.tanques.toArray();
-
-      let html = `
-        <div class="card">
-          <h2>Novo Tanque</h2>
-          <input id="nome" placeholder="Nome do tanque">
-          <input id="especie" placeholder="Espécie">
-          <input id="quantidade" type="number" placeholder="Quantidade">
-          <input id="pesoInicial" type="number" placeholder="Peso inicial (g)">
-          <input id="metaPeso" type="number" placeholder="Meta de peso final (g)">
-          <button onclick="Tanques.add()">Salvar Tanque</button>
-        </div>
-      `;
-
-      if (!lista || lista.length === 0) {
-        container.innerHTML = html;
+    if(tanques.length===0){
+        area.innerHTML="<p>Nenhum tanque cadastrado.</p>";
         return;
-      }
+    }
 
-      for (let t of lista) {
+    tanques.forEach((tanque,index)=>{
 
-        const pesagens = await db.pesagens
-          .where("tanqueId")
-          .equals(t.id)
-          .toArray();
+        const ultimoPeso = tanque.historico.length>0
+            ? tanque.historico[tanque.historico.length-1].peso
+            : tanque.pesoMedio;
 
-        pesagens.sort((a,b) => new Date(a.data) - new Date(b.data));
+        const totalRacao = tanque.historicoRacao.reduce((s,r)=>s+r.quantidade,0);
+        const custoTotalRacao = tanque.historicoRacao.reduce((s,r)=>s+r.valor,0);
 
-        let pesoInicial = t.pesoInicial || 0;
-        let pesoAtual = pesoInicial;
+        const custoPorPeixe = custoTotalRacao / tanque.quantidade;
+        const kgProduzido = (ultimoPeso/1000) * tanque.quantidade;
+        const custoPorKg = kgProduzido>0 ? custoTotalRacao / kgProduzido : 0;
 
-        if (pesagens.length > 0) {
-          pesoAtual = pesagens[pesagens.length - 1].pesoMedio || pesoInicial;
+        const faturamentoPrevisto = kgProduzido * tanque.precoVenda;
+        const lucroPrevisto = faturamentoPrevisto - custoTotalRacao;
+
+        let alerta="";
+        if(lucroPrevisto < 0){
+            alerta="<p style='color:red;font-weight:bold;'>🚨 PREJUÍZO!</p>";
         }
 
-        const ganhoTotal = pesoAtual - pesoInicial;
-        const metaPeso = t.metaPeso || 0;
-        const faltaParaMeta = metaPeso - pesoAtual;
-        const biomassaKg = (pesoAtual * (t.quantidade || 0)) / 1000;
-
-        const percentual = metaPeso > 0
-          ? (pesoAtual / metaPeso) * 100
-          : 0;
-
-        let status = "⚠️ Ainda falta crescer";
-        if (faltaParaMeta <= 0) {
-          status = "🚀 Meta atingida";
-        }
-
-        html += `
+        area.innerHTML += `
         <div class="card">
+            <h3>${tanque.nome}</h3>
+            <p>Peixes: ${tanque.quantidade}</p>
+            <p>Peso Atual: ${ultimoPeso.toFixed(2)} g</p>
+            <p>Meta Final: ${tanque.metaPeso} g</p>
 
-          <h3>${t.nome || ""}</h3>
-          Espécie: ${t.especie || ""}<br>
-          Peixes: ${t.quantidade || 0}
+            <hr>
 
-          <hr>
+            <p>Total Ração: ${totalRacao.toFixed(2)} kg</p>
+            <p>Custo Total Ração: R$ ${custoTotalRacao.toFixed(2)}</p>
+            <p>Custo por Peixe: R$ ${custoPorPeixe.toFixed(2)}</p>
+            <p>Custo por Kg: R$ ${custoPorKg.toFixed(2)}</p>
 
-          <h4>📊 Situação Atual</h4>
-          Peso Atual: ${pesoAtual.toFixed(0)} g<br>
-          Ganho Total: ${ganhoTotal.toFixed(0)} g<br>
-          Biomassa: ${biomassaKg.toFixed(1)} kg
+            <hr>
 
-          <div style="background:#1e3a5f;border-radius:10px;overflow:hidden;margin-top:8px;">
-            <div style="
-                width:${percentual}%;
-                background:#4caf50;
-                padding:6px;
-                text-align:center;
-                font-size:12px;
-                color:white;">
-              ${percentual.toFixed(0)}%
-            </div>
-          </div>
+            <p>Previsão Faturamento: R$ ${faturamentoPrevisto.toFixed(2)}</p>
+            <p><strong>Previsão Lucro: R$ ${lucroPrevisto.toFixed(2)}</strong></p>
 
-          <hr>
+            ${alerta}
 
-          <h4>🎯 Meta</h4>
-          Meta Final: ${metaPeso} g<br>
-          Falta: ${faltaParaMeta.toFixed(0)} g<br>
-          Status: ${status}
-
-          <hr>
-
-          <h4>📅 Histórico</h4>
-          <table style="width:100%;font-size:12px;">
-            <tr>
-              <th>Data</th>
-              <th>Peso</th>
-              <th>Ganho</th>
-              <th>Ações</th>
-            </tr>
-            ${pesagens.map(p => `
-              <tr>
-                <td>${new Date(p.data).toLocaleDateString()}</td>
-                <td>${(p.pesoMedio || 0).toFixed(0)} g</td>
-                <td>${(p.ganho || 0).toFixed(0)} g</td>
-                <td>
-                  <button onclick="Pesagens.editar(${p.id})">✏️</button>
-                  <button onclick="Pesagens.remover(${p.id})">🗑️</button>
-                </td>
-              </tr>
-            `).join("")}
-          </table>
-
-          <br>
-
-          <button onclick="Pesagens.adicionar(${t.id})">
-            Registrar Pesagem
-          </button>
-
-          <button onclick="Tanques.remove(${t.id})">
-            Excluir Tanque
-          </button>
-
+            <button onclick="adicionarPesagem(${index})">Adicionar Pesagem</button>
+            <button onclick="registrarRacao(${index})">Registrar Ração</button>
+            <button onclick="definirPrecoVenda(${index})">Definir Preço Venda</button>
+            <button onclick="removerTanque(${index})" style="background:red;">Excluir</button>
         </div>
         `;
-      }
+    });
+}
 
-      container.innerHTML = html;
+function adicionarTanque(){
+    const nome=prompt("Nome do tanque:");
+    const quantidade=parseInt(prompt("Quantidade de peixes:"));
+    const pesoInicial=parseFloat(prompt("Peso médio inicial (g):"));
+    const metaPeso=parseFloat(prompt("Meta final (g):"));
 
-    } catch (error) {
-
-      console.error(error);
-      container.innerHTML = "<div class='card'>Erro ao carregar tanques.</div>";
-
-    }
-  },
-
-  async add() {
-
-    const nome = document.getElementById("nome").value;
-    const especie = document.getElementById("especie").value;
-    const quantidade = parseInt(document.getElementById("quantidade").value);
-    const pesoInicial = parseFloat(document.getElementById("pesoInicial").value);
-    const metaPeso = parseFloat(document.getElementById("metaPeso").value);
-
-    if (!nome || !especie || !quantidade || !pesoInicial || !metaPeso) {
-      alert("Preencha todos os campos");
-      return;
-    }
-
-    await db.tanques.add({
-      nome,
-      especie,
-      quantidade,
-      pesoInicial,
-      metaPeso,
-      dataPovoamento: new Date()
+    tanques.push({
+        nome,
+        quantidade,
+        pesoMedio:pesoInicial,
+        metaPeso,
+        precoVenda:15,
+        historico:[],
+        historicoRacao:[]
     });
 
-    Tanques.render();
-  },
+    salvarTanques();
+    mostrarTanques();
+}
 
-  async remove(id) {
+function adicionarPesagem(index){
+    const novoPeso=parseFloat(prompt("Novo peso médio (g):"));
+    const data=new Date().toLocaleDateString();
 
-    if (!confirm("Excluir tanque e histórico?")) return;
+    tanques[index].pesoMedio=novoPeso;
+    tanques[index].historico.push({data,peso:novoPeso});
 
-    await db.tanques.delete(id);
-    await db.pesagens.where("tanqueId").equals(id).delete();
+    salvarTanques();
+    mostrarTanques();
+}
 
-    Tanques.render();
-  }
+function registrarRacao(index){
+    const quantidade=parseFloat(prompt("Quantos kg de ração?"));
+    const valor=parseFloat(prompt("Valor total da ração (R$)?"));
+    const data=new Date().toLocaleDateString();
 
-};
+    tanques[index].historicoRacao.push({data,quantidade,valor});
+
+    lancamentos.push({
+        tipo:"saída",
+        descricao:`Ração tanque ${tanques[index].nome}`,
+        valor:valor,
+        data:data
+    });
+
+    salvarTanques();
+    salvarLancamentos();
+    mostrarTanques();
+    mostrarFinanceiro();
+}
+
+function definirPrecoVenda(index){
+    const preco=parseFloat(prompt("Preço venda por kg?"));
+    tanques[index].precoVenda=preco;
+    salvarTanques();
+    mostrarTanques();
+}
+
+function removerTanque(index){
+    tanques.splice(index,1);
+    salvarTanques();
+    mostrarTanques();
+}
