@@ -1,3 +1,4 @@
+alert("Tanques PRO carregado");
 // ===============================
 // ALEX PSICULTOR PRO - TANQUES PRO
 // ===============================
