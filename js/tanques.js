@@ -1,58 +1,136 @@
-function adicionarTanque(){
+// ===============================
+// ALEX PSICULTOR PRO - TANQUES PRO
+// ===============================
 
-    let tanques = JSON.parse(localStorage.getItem("tanques")) || [];
+let tanques = JSON.parse(localStorage.getItem("tanques")) || [];
 
-    const nome = prompt("Nome do tanque:");
-    const quantidade = parseInt(prompt("Quantidade de peixes:"));
-    const peso = parseFloat(prompt("Peso médio inicial (g):"));
-
-    if(!nome || isNaN(quantidade) || isNaN(peso)){
-        alert("Dados inválidos!");
-        return;
-    }
-
-    tanques.push({
-        nome,
-        quantidade,
-        peso
-    });
-
+function salvarTanques() {
     localStorage.setItem("tanques", JSON.stringify(tanques));
-
-    mostrarTanques();
 }
 
-function mostrarTanques(){
+function mostrarTanques() {
+    const area = document.getElementById("tanquesContent");
+    area.innerHTML = "";
 
-    const area = document.getElementById("areaTanques");
-    let tanques = JSON.parse(localStorage.getItem("tanques")) || [];
-
-    area.innerHTML="";
-
-    if(tanques.length===0){
-        area.innerHTML="<p>Nenhum tanque cadastrado.</p>";
+    if (tanques.length === 0) {
+        area.innerHTML = `
+            <button onclick="novoTanque()" class="btn-add">+ Novo Tanque</button>
+            <p style="text-align:center;opacity:0.7;">Nenhum tanque cadastrado.</p>
+        `;
         return;
     }
 
-    tanques.forEach((t,index)=>{
-        area.innerHTML+=`
+    tanques.forEach((tanque, index) => {
+
+        let cor = "green";
+
+        if (tanque.historico.length > 1) {
+            const ultimo = tanque.historico[tanque.historico.length - 1].peso;
+            const anterior = tanque.historico[tanque.historico.length - 2].peso;
+
+            if (ultimo > anterior) {
+                cor = "green";
+            } else if (ultimo === anterior) {
+                cor = "orange";
+            } else {
+                cor = "red";
+            }
+        }
+
+        area.innerHTML += `
             <div class="card">
-                <h3>${t.nome}</h3>
-                <p>Peixes: ${t.quantidade}</p>
-                <p>Peso médio: ${t.peso} g</p>
-                <button class="btn-danger" onclick="removerTanque(${index})">Excluir</button>
+                <h3>${tanque.nome}</h3>
+                <p>Peixes: ${tanque.peixes}</p>
+                <p>Peso médio: ${tanque.peso} g</p>
+                <p><strong>Observações:</strong> ${tanque.observacoes || "Nenhuma"}</p>
+
+                <div style="background:#ddd;height:10px;border-radius:5px;">
+                    <div style="width:${tanque.peso / 10}%;height:10px;background:${cor};border-radius:5px;"></div>
+                </div>
+
+                <br>
+
+                <button onclick="adicionarSemana(${index})">Passagem Semanal</button>
+                <button onclick="editarObservacao(${index})">Observação</button>
+                <button onclick="verHistorico(${index})">Histórico</button>
+                <button onclick="removerTanque(${index})" class="btn-delete">Excluir</button>
             </div>
         `;
     });
+
+    area.innerHTML += `<button onclick="novoTanque()" class="btn-add">+ Novo Tanque</button>`;
 }
 
-function removerTanque(index){
+function novoTanque() {
+    const nome = prompt("Nome do tanque:");
+    const peixes = parseInt(prompt("Quantidade de peixes:"));
+    const peso = parseFloat(prompt("Peso médio inicial (g):"));
 
-    let tanques = JSON.parse(localStorage.getItem("tanques")) || [];
+    if (!nome || !peixes || !peso) return;
 
-    tanques.splice(index,1);
+    tanques.push({
+        nome,
+        peixes,
+        peso,
+        observacoes: "",
+        historico: [
+            {
+                semana: 1,
+                peso: peso,
+                data: new Date().toLocaleDateString()
+            }
+        ]
+    });
 
-    localStorage.setItem("tanques", JSON.stringify(tanques));
-
+    salvarTanques();
     mostrarTanques();
 }
+
+function adicionarSemana(index) {
+    const novoPeso = parseFloat(prompt("Novo peso médio (g):"));
+    if (!novoPeso) return;
+
+    const tanque = tanques[index];
+
+    tanque.peso = novoPeso;
+
+    tanque.historico.push({
+        semana: tanque.historico.length + 1,
+        peso: novoPeso,
+        data: new Date().toLocaleDateString()
+    });
+
+    salvarTanques();
+    mostrarTanques();
+}
+
+function editarObservacao(index) {
+    const obs = prompt("Digite a observação:");
+    tanques[index].observacoes = obs;
+    salvarTanques();
+    mostrarTanques();
+}
+
+function verHistorico(index) {
+    const tanque = tanques[index];
+
+    let texto = "Histórico:\n\n";
+
+    tanque.historico.forEach(item => {
+        texto += `Semana ${item.semana} - ${item.peso}g - ${item.data}\n`;
+    });
+
+    alert(texto);
+}
+
+function removerTanque(index) {
+    if (confirm("Excluir tanque?")) {
+        tanques.splice(index, 1);
+        salvarTanques();
+        mostrarTanques();
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    mostrarTanques();
+});
