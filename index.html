@@ -3,63 +3,51 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Alex Piscicultura PRO</title>
 
-<style>
-body{
-  margin:0;
-  font-family:Arial, Helvetica, sans-serif;
-  background:linear-gradient(180deg,#0f2027,#203a43,#2c5364);
-  color:white;
-  text-align:center;
-}
+<title>Alex Psicultor</title>
 
-h1{margin-top:30px}
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f172a">
 
-.menu{
-  display:flex;
-  flex-wrap:wrap;
-  justify-content:center;
-  gap:15px;
-  margin:20px;
-}
+<!-- Ícone -->
+<link rel="icon" href="assets/icon-192.png">
 
-button{
-  padding:12px 20px;
-  border:none;
-  border-radius:10px;
-  font-size:16px;
-  font-weight:bold;
-  cursor:pointer;
-  background:#00c9a7;
-  color:black;
-  transition:0.3s;
-}
+<!-- Biblioteca Excel -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
-button:hover{
-  background:#00ffcc;
-}
+<!-- Biblioteca PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-input{
-  padding:10px;
-  margin:8px;
-  border-radius:8px;
-  border:none;
-  width:220px;
-  font-size:15px;
-}
-
-#conteudo{
-  margin:20px;
-}
-</style>
-
+<link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
 <div id="app"></div>
 
+<!-- CORE -->
+<script src="core/storage.js"></script>
+<script src="core/auth.js"></script>
+<script src="core/excel.js"></script>
+<script src="core/pdf.js"></script>
+
+<!-- MODULES -->
+<script src="modules/tanques.js"></script>
+<script src="modules/vendas.js"></script>
+<script src="modules/relatorios.js"></script>
+
+<!-- APP -->
 <script src="app.js"></script>
+
+<!-- Registrar Service Worker -->
+<script>
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js')
+    .then(() => console.log("Service Worker registrado"))
+    .catch(err => console.log("Erro no Service Worker:", err));
+}
+</script>
 
 </body>
 </html>
