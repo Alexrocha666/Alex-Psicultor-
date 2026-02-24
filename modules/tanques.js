@@ -1,62 +1,76 @@
-function telaTanques() {
-  let tanques = usuarioAtual.fazenda.tanques;
+// ===============================
+// ALEX PSICULTOR - TANQUES MODULE
+// ===============================
 
-  let html = `
-    <h2>Gestão de Tanques</h2>
+function renderTanques() {
 
-    <input id="nomeTanque" placeholder="Nome">
-    <input id="areaTanque" type="number" placeholder="Área m²">
-    <input id="profundidadeTanque" type="number" placeholder="Profundidade m">
-    <button onclick="adicionarTanque()">Adicionar</button>
-    <hr>
-  `;
+    const user = usuarioLogado;
 
-  tanques.forEach((t, i) => {
-    html += `
-      <div class="card">
-        <strong>${t.nome}</strong><br>
-        Área: ${t.area} m²<br>
-        Profundidade: ${t.profundidade} m<br>
-        Volume: ${t.volume} m³<br>
-        Peixes: ${t.quantidade || 0}<br>
-        Peso Médio: ${t.pesoMedio || 0} kg<br>
-        Biomassa: ${t.biomassa || 0} kg<br>
-        <button onclick="removerTanque(${i})">Remover</button>
-      </div>
+    let html = `
+        <div class="card">
+            <h2>Cadastro de Tanques</h2>
+            <input type="text" id="tanqueNome" placeholder="Nome do tanque">
+            <input type="number" id="tanqueQtd" placeholder="Quantidade de peixes">
+            <input type="number" id="tanquePeso" placeholder="Peso médio (kg)">
+            <button class="btn-success" onclick="adicionarTanque()">Adicionar Tanque</button>
+        </div>
+
+        <div class="card">
+            <h2>Lista de Tanques</h2>
+            <table>
+                <tr>
+                    <th>Nome</th>
+                    <th>Peixes</th>
+                    <th>Peso Médio</th>
+                    <th>Ações</th>
+                </tr>
     `;
-  });
 
-  html += `<button onclick="iniciarSistema()">Voltar</button>`;
+    user.tanques.forEach((t, index) => {
+        html += `
+            <tr>
+                <td>${t.nome}</td>
+                <td>${t.quantidade}</td>
+                <td>${t.peso}</td>
+                <td>
+                    <button class="btn-danger" onclick="excluirTanque(${index})">Excluir</button>
+                </td>
+            </tr>
+        `;
+    });
 
-  document.getElementById("app").innerHTML = html;
+    html += `</table></div>`;
+
+    document.getElementById("conteudo").innerHTML = html;
 }
 
 function adicionarTanque() {
-  let nome = nomeTanque.value;
-  let area = Number(areaTanque.value);
-  let profundidade = Number(profundidadeTanque.value);
 
-  if (!nome || !area || !profundidade) return alert("Preencha tudo");
+    const nome = document.getElementById("tanqueNome").value.trim();
+    const quantidade = document.getElementById("tanqueQtd").value;
+    const peso = document.getElementById("tanquePeso").value;
 
-  let volume = area * profundidade;
+    if (!nome || !quantidade || !peso) {
+        alert("Preencha todos os campos");
+        return;
+    }
 
-  usuarioAtual.fazenda.tanques.push({
-    id: Date.now(),
-    nome,
-    area,
-    profundidade,
-    volume,
-    quantidade: 0,
-    pesoMedio: 0,
-    biomassa: 0
-  });
+    usuarioLogado.tanques.push({
+        nome,
+        quantidade,
+        peso,
+        data: new Date().toLocaleDateString()
+    });
 
-  atualizarUsuarioGlobal(usuarioAtual);
-  telaTanques();
+    atualizarUsuario(usuarioLogado);
+    renderTanques();
 }
 
-function removerTanque(i) {
-  usuarioAtual.fazenda.tanques.splice(i, 1);
-  atualizarUsuarioGlobal(usuarioAtual);
-  telaTanques();
+function excluirTanque(index) {
+
+    if (!confirm("Excluir este tanque?")) return;
+
+    usuarioLogado.tanques.splice(index, 1);
+    atualizarUsuario(usuarioLogado);
+    renderTanques();
 }
