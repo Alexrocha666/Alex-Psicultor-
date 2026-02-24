@@ -3,8 +3,8 @@ let usuarioAtual = null;
 function telaLogin() {
   document.getElementById("app").innerHTML = `
     <h2>Login</h2>
-    <input id="email" placeholder="Email"><br><br>
-    <input id="senha" type="password" placeholder="Senha"><br><br>
+    <input id="email" placeholder="Email"><br>
+    <input id="senha" type="password" placeholder="Senha"><br>
     <button onclick="login()">Entrar</button>
     <button onclick="telaCadastro()">Cadastrar</button>
   `;
@@ -12,11 +12,11 @@ function telaLogin() {
 
 function telaCadastro() {
   document.getElementById("app").innerHTML = `
-    <h2>Cadastro</h2>
-    <input id="nome" placeholder="Nome"><br><br>
-    <input id="email" placeholder="Email"><br><br>
-    <input id="senha" type="password" placeholder="Senha"><br><br>
-    <button onclick="cadastrar()">Criar Conta</button>
+    <h2>Criar Conta</h2>
+    <input id="nome" placeholder="Nome"><br>
+    <input id="email" placeholder="Email"><br>
+    <input id="senha" type="password" placeholder="Senha"><br>
+    <button onclick="cadastrar()">Criar</button>
   `;
 }
 
@@ -67,4 +67,9 @@ function verificarLogin() {
   } else {
     telaLogin();
   }
+}
+
+function logout() {
+  localStorage.removeItem("usuarioLogado");
+  location.reload();
 }
