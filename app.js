@@ -1,10 +1,51 @@
-function iniciarSistema() {
+let usuarioAtual = null;
 
-  let nomeUsuario = usuarioAtual?.nome || "Produtor";
+function salvar(chave, valor) {
+  localStorage.setItem(chave, JSON.stringify(valor));
+}
 
+function carregar(chave) {
+  return JSON.parse(localStorage.getItem(chave)) || [];
+}
+
+function verificarLogin() {
+  let salvo = JSON.parse(localStorage.getItem("usuarioLogado"));
+  if (salvo && salvo.nome) {
+    usuarioAtual = salvo;
+    iniciarSistema();
+  } else {
+    telaLogin();
+  }
+}
+
+function telaLogin() {
   document.getElementById("app").innerHTML = `
-    <h1>🐟 Alex Psicultor PRO</h1>
-    <p>Bem-vindo, ${nomeUsuario}</p>
+    <div class="container">
+      <h1>🐟 Alex Piscicultura PRO</h1>
+      <h2>Login</h2>
+      <input type="text" id="nome" placeholder="Seu nome"><br>
+      <button onclick="login()">Entrar</button>
+    </div>
+  `;
+}
+
+function login() {
+  let nome = document.getElementById("nome").value;
+  if (!nome) return alert("Digite seu nome");
+  usuarioAtual = { nome };
+  salvar("usuarioLogado", usuarioAtual);
+  iniciarSistema();
+}
+
+function logout() {
+  localStorage.removeItem("usuarioLogado");
+  location.reload();
+}
+
+function iniciarSistema() {
+  document.getElementById("app").innerHTML = `
+    <h1>🐟 Alex Piscicultura PRO</h1>
+    <p>Bem-vindo, ${usuarioAtual.nome}</p>
 
     <button onclick="telaDashboard()">Dashboard</button>
     <button onclick="telaTanques()">Tanques</button>
@@ -12,34 +53,6 @@ function iniciarSistema() {
     <button onclick="telaVendas()">Vendas</button>
     <button onclick="logout()">Sair</button>
     <hr>
-  `;
-}
-
-verificarLogin();
-function telaDashboard() {
-  document.getElementById("app").innerHTML += `
-    <h2>📊 Dashboard</h2>
-    <p>Resumo geral da produção</p>
-  `;
-}
-
-function telaTanques() {
-  document.getElementById("app").innerHTML += `
-    <h2>🐟 Gestão de Tanques</h2>
-    <p>Aqui você vai cadastrar seus tanques</p>
-  `;
-}
-
-function telaFinanceiro() {
-  document.getElementById("app").innerHTML += `
-    <h2>💰 Financeiro</h2>
-    <p>Controle de custos e lucros</p>
-  `;
-}
-
-function telaVendas() {
-  document.getElementById("app").innerHTML += `
-    <h2>🛒 Vendas</h2>
-    <p>Registro de vendas de peixe</p>
+    <div id="conteudo"></div>
   `;
 }
