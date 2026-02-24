@@ -61,10 +61,12 @@ function login() {
 
 function verificarLogin() {
   let salvo = carregar("usuarioLogado");
-  if (salvo) {
+
+  if (salvo && salvo.nome) {
     usuarioAtual = salvo;
     iniciarSistema();
   } else {
+    localStorage.removeItem("usuarioLogado");
     telaLogin();
   }
 }
