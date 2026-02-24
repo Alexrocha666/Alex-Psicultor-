@@ -1,109 +1,50 @@
-let usuarioAtual = null;
+// ===============================
+// ALEX PSICULTOR - APP PRINCIPAL
+// ===============================
 
-/* UTIL */
-function salvar(chave, valor){
-  localStorage.setItem(chave, JSON.stringify(valor));
+let modoVisualizacao = "individual";
+
+function renderApp() {
+
+    let seletorAdmin = "";
+
+    if (usuarioLogado.tipo === "admin") {
+
+        let opcoes = `<option value="individual">Meus Dados</option>
+                      <option value="todos">Todos Usuários</option>`;
+
+        seletorAdmin = `
+            <select onchange="alterarModo(this.value)">
+                ${opcoes}
+            </select>
+            <button class="btn-warning" onclick="criarUsuario()">Novo Usuário</button>
+        `;
+    }
+
+    document.getElementById("app").innerHTML = `
+        <div class="navbar">
+            <h1>Alex Psicultor</h1>
+            <div class="nav-buttons">
+                ${seletorAdmin}
+                <button class="btn-primary" onclick="renderTanques()">Tanques</button>
+                <button class="btn-primary" onclick="renderVendas()">Vendas</button>
+                <button class="btn-primary" onclick="renderRelatorios()">Relatórios</button>
+                <button class="btn-danger" onclick="logout()">Sair</button>
+            </div>
+        </div>
+        <div id="conteudo"></div>
+    `;
+
+    renderRelatorios();
 }
 
-function carregar(chave){
-  return JSON.parse(localStorage.getItem(chave)) || [];
+function alterarModo(valor) {
+    modoVisualizacao = valor;
+    renderRelatorios();
 }
 
-/* LOGIN */
-function verificarLogin(){
-  let salvo = JSON.parse(localStorage.getItem("usuarioLogado"));
-  if(salvo && salvo.nome){
-    usuarioAtual = salvo;
-    iniciarSistema();
-  }else{
-    telaLogin();
-  }
-}
-
-function telaLogin(){
-  document.getElementById("app").innerHTML = `
-    <h1>🐟 Alex Piscicultura PRO</h1>
-    <h2>Login</h2>
-    <input id="nome" placeholder="Seu nome"><br>
-    <button onclick="login()">Entrar</button>
-  `;
-}
-
-function login(){
-  let nome = document.getElementById("nome").value;
-  if(!nome){ alert("Digite seu nome"); return; }
-
-  usuarioAtual = {nome};
-  salvar("usuarioLogado", usuarioAtual);
-  iniciarSistema();
-}
-
-function logout(){
-  localStorage.removeItem("usuarioLogado");
-  location.reload();
-}
-
-/* SISTEMA */
-function iniciarSistema(){
-  document.getElementById("app").innerHTML = `
-    <h1>🐟 Alex Piscicultura PRO</h1>
-    <p>Bem-vindo, ${usuarioAtual.nome}</p>
-
-    <div class="menu">
-      <button onclick="telaDashboard()">Dashboard</button>
-      <button onclick="telaTanques()">Tanques</button>
-      <button onclick="telaFinanceiro()">Financeiro</button>
-      <button onclick="telaVendas()">Vendas</button>
-      <button onclick="logout()">Sair</button>
-    </div>
-
-    <hr>
-    <div id="conteudo"></div>
-  `;
-}
-
-/* DASHBOARD */
-function telaDashboard(){
-  let tanques = carregar("tanques");
-  let custos = carregar("custos");
-  let vendas = carregar("vendas");
-
-  let totalPeixes = tanques.reduce((a,t)=>a+t.quantidade,0);
-  let biomassa = tanques.reduce((a,t)=>a+(t.quantidade*t.peso/1000),0);
-  let receita = vendas.reduce((a,v)=>a+(v.kg*v.preco),0);
-  let despesa = custos.reduce((a,c)=>a+c.valor,0);
-
-  document.getElementById("conteudo").innerHTML = `
-    <h2>📊 Dashboard</h2>
-    <p>Total Tanques: ${tanques.length}</p>
-    <p>Total Peixes: ${totalPeixes}</p>
-    <p>Biomassa Total: ${biomassa.toFixed(2)} kg</p>
-    <p>Receita: R$ ${receita.toFixed(2)}</p>
-    <p>Despesas: R$ ${despesa.toFixed(2)}</p>
-    <h3>Lucro: R$ ${(receita-despesa).toFixed(2)}</h3>
-  `;
-}
-
-/* TANQUES */
-function telaTanques(){
-  let tanques = carregar("tanques");
-
-  document.getElementById("conteudo").innerHTML = `
-    <h2>🐟 Gestão de Tanques</h2>
-    <input id="nomeTanque" placeholder="Nome do tanque"><br>
-    <input id="quantidade" type="number" placeholder="Qtd peixes"><br>
-    <input id="peso" type="number" placeholder="Peso médio (g)"><br>
-    <button onclick="criarTanque()">Criar Tanque</button>
-    <hr>
-    ${tanques.map((t,i)=>`
-      <div>
-        <b>${t.nome}</b><br>
-        Peixes: ${t.quantidade}<br>
-        Peso médio: ${t.peso} g<br>
-        Biomassa: ${(t.quantidade*t.peso/1000).toFixed(2)} kg<br>
-        <button onclick="excluirTanque(${i})">Excluir</button>
-        <hr>
-      </div>
+// Inicialização
+verificarSessao();      </div>
     `).join("")}
   `;
 }
