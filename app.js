@@ -1,55 +1,50 @@
 let usuarioAtual = null;
 
-/* ================= UTIL ================= */
-
-function salvar(chave, valor) {
+/* UTIL */
+function salvar(chave, valor){
   localStorage.setItem(chave, JSON.stringify(valor));
 }
 
-function carregar(chave) {
+function carregar(chave){
   return JSON.parse(localStorage.getItem(chave)) || [];
 }
 
-/* ================= LOGIN ================= */
-
-function verificarLogin() {
+/* LOGIN */
+function verificarLogin(){
   let salvo = JSON.parse(localStorage.getItem("usuarioLogado"));
-  if (salvo && salvo.nome) {
+  if(salvo && salvo.nome){
     usuarioAtual = salvo;
     iniciarSistema();
-  } else {
+  }else{
     telaLogin();
   }
 }
 
-function telaLogin() {
+function telaLogin(){
   document.getElementById("app").innerHTML = `
-    <div class="container">
-      <h1>🐟 Alex Piscicultura PRO</h1>
-      <h2>Login</h2>
-      <input type="text" id="nome" placeholder="Seu nome"><br>
-      <button onclick="login()">Entrar</button>
-    </div>
+    <h1>🐟 Alex Piscicultura PRO</h1>
+    <h2>Login</h2>
+    <input id="nome" placeholder="Seu nome"><br>
+    <button onclick="login()">Entrar</button>
   `;
 }
 
-function login() {
+function login(){
   let nome = document.getElementById("nome").value;
-  if (!nome) return alert("Digite seu nome");
+  if(!nome){ alert("Digite seu nome"); return; }
 
-  usuarioAtual = { nome };
+  usuarioAtual = {nome};
   salvar("usuarioLogado", usuarioAtual);
   iniciarSistema();
 }
 
-function logout() {
+function logout(){
   localStorage.removeItem("usuarioLogado");
   location.reload();
 }
 
-/* ================= SISTEMA ================= */
-
-function iniciarSistema() {
+/* SISTEMA */
+function iniciarSistema(){
   document.getElementById("app").innerHTML = `
     <h1>🐟 Alex Piscicultura PRO</h1>
     <p>Bem-vindo, ${usuarioAtual.nome}</p>
@@ -67,9 +62,8 @@ function iniciarSistema() {
   `;
 }
 
-/* ================= DASHBOARD ================= */
-
-function telaDashboard() {
+/* DASHBOARD */
+function telaDashboard(){
   let tanques = carregar("tanques");
   let custos = carregar("custos");
   let vendas = carregar("vendas");
@@ -90,27 +84,23 @@ function telaDashboard() {
   `;
 }
 
-/* ================= TANQUES ================= */
-
-function telaTanques() {
+/* TANQUES */
+function telaTanques(){
   let tanques = carregar("tanques");
 
   document.getElementById("conteudo").innerHTML = `
     <h2>🐟 Gestão de Tanques</h2>
-
     <input id="nomeTanque" placeholder="Nome do tanque"><br>
     <input id="quantidade" type="number" placeholder="Qtd peixes"><br>
     <input id="peso" type="number" placeholder="Peso médio (g)"><br>
     <button onclick="criarTanque()">Criar Tanque</button>
-
     <hr>
-
-    ${tanques.map((t, i) => `
+    ${tanques.map((t,i)=>`
       <div>
         <b>${t.nome}</b><br>
         Peixes: ${t.quantidade}<br>
         Peso médio: ${t.peso} g<br>
-        Biomassa: ${(t.quantidade * t.peso / 1000).toFixed(2)} kg<br>
+        Biomassa: ${(t.quantidade*t.peso/1000).toFixed(2)} kg<br>
         <button onclick="excluirTanque(${i})">Excluir</button>
         <hr>
       </div>
@@ -118,48 +108,41 @@ function telaTanques() {
   `;
 }
 
-function criarTanque() {
+function criarTanque(){
   let nome = document.getElementById("nomeTanque").value;
   let quantidade = Number(document.getElementById("quantidade").value);
   let peso = Number(document.getElementById("peso").value);
 
-  if (!nome || !quantidade || !peso) {
+  if(!nome || !quantidade || !peso){
     alert("Preencha todos os campos");
     return;
   }
 
   let tanques = carregar("tanques");
-  tanques.push({ nome, quantidade, peso });
+  tanques.push({nome, quantidade, peso});
   salvar("tanques", tanques);
-
   telaTanques();
 }
 
-function excluirTanque(i) {
+function excluirTanque(i){
   let tanques = carregar("tanques");
-  tanques.splice(i, 1);
+  tanques.splice(i,1);
   salvar("tanques", tanques);
   telaTanques();
 }
 
-/* ================= FINANCEIRO ================= */
-
-function telaFinanceiro() {
+/* FINANCEIRO */
+function telaFinanceiro(){
   let custos = carregar("custos");
-
   let total = custos.reduce((a,b)=>a+b.valor,0);
 
   document.getElementById("conteudo").innerHTML = `
     <h2>💰 Financeiro</h2>
-
     <input id="descricao" placeholder="Descrição"><br>
     <input id="valor" type="number" placeholder="Valor"><br>
     <button onclick="adicionarCusto()">Adicionar</button>
-
     <hr>
-
     <h3>Total despesas: R$ ${total.toFixed(2)}</h3>
-
     ${custos.map((c,i)=>`
       <p>${c.descricao} - R$ ${c.valor.toFixed(2)}
       <button onclick="excluirCusto(${i})">Excluir</button></p>
@@ -167,47 +150,40 @@ function telaFinanceiro() {
   `;
 }
 
-function adicionarCusto() {
+function adicionarCusto(){
   let descricao = document.getElementById("descricao").value;
   let valor = Number(document.getElementById("valor").value);
 
-  if (!descricao || !valor) {
+  if(!descricao || !valor){
     alert("Preencha todos os campos");
     return;
   }
 
   let custos = carregar("custos");
-  custos.push({ descricao, valor });
+  custos.push({descricao, valor});
   salvar("custos", custos);
-
   telaFinanceiro();
 }
 
-function excluirCusto(i) {
+function excluirCusto(i){
   let custos = carregar("custos");
   custos.splice(i,1);
   salvar("custos", custos);
   telaFinanceiro();
 }
 
-/* ================= VENDAS ================= */
-
-function telaVendas() {
+/* VENDAS */
+function telaVendas(){
   let vendas = carregar("vendas");
-
   let receita = vendas.reduce((a,v)=>a+(v.kg*v.preco),0);
 
   document.getElementById("conteudo").innerHTML = `
     <h2>🛒 Vendas</h2>
-
     <input id="kg" type="number" placeholder="Kg vendidos"><br>
     <input id="preco" type="number" placeholder="Preço por kg"><br>
     <button onclick="registrarVenda()">Registrar</button>
-
     <hr>
-
     <h3>Receita total: R$ ${receita.toFixed(2)}</h3>
-
     ${vendas.map((v,i)=>`
       <p>${v.kg}kg - R$ ${v.preco.toFixed(2)}/kg
       <button onclick="excluirVenda(${i})">Excluir</button></p>
@@ -215,29 +191,27 @@ function telaVendas() {
   `;
 }
 
-function registrarVenda() {
+function registrarVenda(){
   let kg = Number(document.getElementById("kg").value);
   let preco = Number(document.getElementById("preco").value);
 
-  if (!kg || !preco) {
+  if(!kg || !preco){
     alert("Preencha todos os campos");
     return;
   }
 
   let vendas = carregar("vendas");
-  vendas.push({ kg, preco });
+  vendas.push({kg, preco});
   salvar("vendas", vendas);
-
   telaVendas();
 }
 
-function excluirVenda(i) {
+function excluirVenda(i){
   let vendas = carregar("vendas");
   vendas.splice(i,1);
   salvar("vendas", vendas);
   telaVendas();
 }
 
-/* ================= INICIAR ================= */
-
+/* INICIAR */
 verificarLogin();
