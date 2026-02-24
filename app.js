@@ -1,7 +1,10 @@
 function iniciarSistema() {
+
+  let nomeUsuario = usuarioAtual?.nome || "Produtor";
+
   document.getElementById("app").innerHTML = `
     <h1>🐟 Alex Psicultor PRO</h1>
-    <p>Bem-vindo, ${usuarioAtual.nome}</p>
+    <p>Bem-vindo, ${nomeUsuario}</p>
 
     <button onclick="telaDashboard()">Dashboard</button>
     <button onclick="telaTanques()">Tanques</button>
