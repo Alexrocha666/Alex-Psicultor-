@@ -1,130 +1,102 @@
 // ===============================
-// ALEX PSICULTOR - AUTH CORE
+// SISTEMA DE AUTENTICAÇÃO PROFISSIONAL
 // ===============================
 
-let usuarioLogado = null;
+const ADMIN_EMAIL = "admin@alexpsicultor.com";
+const ADMIN_SENHA = "123456";
 
-// Salvar sessão
-function salvarSessao(usuario) {
-    sessionStorage.setItem("usuario_logado", usuario);
+function getUsers() {
+    return JSON.parse(localStorage.getItem("users")) || [];
 }
 
-// Obter sessão
-function obterSessao() {
-    return sessionStorage.getItem("usuario_logado");
+function saveUsers(users) {
+    localStorage.setItem("users", JSON.stringify(users));
 }
 
-// Encerrar sessão
-function logout() {
-    sessionStorage.removeItem("usuario_logado");
-    usuarioLogado = null;
-    renderLogin();
+function register(nome, email, senha) {
+    let users = getUsers();
+
+    if (users.find(u => u.email === email)) {
+        alert("Email já cadastrado!");
+        return;
+    }
+
+    users.push({
+        nome,
+        email,
+        senha,
+        status: "pendente"
+    });
+
+    saveUsers(users);
+    alert("Cadastro enviado! Aguarde aprovação.");
 }
 
-// Fazer login
-function login(usuario, senha) {
-    const user = buscarUsuario(usuario);
+function login(email, senha) {
+
+    // ADMIN
+    if (email === ADMIN_EMAIL && senha === ADMIN_SENHA) {
+        showAdminPanel();
+        return;
+    }
+
+    let users = getUsers();
+    let user = users.find(u => u.email === email && u.senha === senha);
 
     if (!user) {
-        alert("Usuário não encontrado");
+        alert("Usuário ou senha inválidos!");
         return;
     }
 
-    if (user.senha !== senha) {
-        alert("Senha incorreta");
+    if (user.status !== "aprovado") {
+        alert("Usuário ainda não aprovado!");
         return;
     }
 
-    usuarioLogado = user;
-    salvarSessao(user.usuario);
-    renderApp();
+    localStorage.setItem("loggedUser", JSON.stringify(user));
+    alert("Login realizado com sucesso!");
+    location.reload();
 }
 
-// Verificar sessão ativa ao iniciar
-function verificarSessao() {
-    const usuarioSalvo = obterSessao();
-    if (usuarioSalvo) {
-        const user = buscarUsuario(usuarioSalvo);
-        if (user) {
-            usuarioLogado = user;
-            renderApp();
-            return;
-        }
-    }
-    renderLogin();
-}
+// ===============================
+// PAINEL ADMIN
+// ===============================
 
-// Tela de login
-function renderLogin() {
-    const app = document.getElementById("app");
+function showAdminPanel() {
+    let users = getUsers();
 
-    app.innerHTML = `
-        <div class="card">
-            <h2>Login - Alex Psicultor</h2>
-            <input type="text" id="loginUsuario" placeholder="Usuário">
-            <input type="password" id="loginSenha" placeholder="Senha">
-            <button class="btn-primary" onclick="entrar()">Entrar</button>
-        </div>
+    let pendentes = users.filter(u => u.status === "pendente");
+
+    let html = `
+        <h2>Painel Administrativo</h2>
+        <h3>Usuários Pendentes</h3>
     `;
+
+    pendentes.forEach((u, index) => {
+        html += `
+            <div style="margin-bottom:10px;">
+                ${u.nome} - ${u.email}
+                <button onclick="aprovar('${u.email}')">Aprovar</button>
+                <button onclick="excluir('${u.email}')">Excluir</button>
+            </div>
+        `;
+    });
+
+    document.getElementById("app").innerHTML = html;
 }
 
-// Botão entrar
-function entrar() {
-    const usuario = document.getElementById("loginUsuario").value.trim();
-    const senha = document.getElementById("loginSenha").value.trim();
-
-    if (!usuario || !senha) {
-        alert("Preencha todos os campos");
-        return;
-    }
-
-    login(usuario, senha);
+function aprovar(email) {
+    let users = getUsers();
+    let user = users.find(u => u.email === email);
+    user.status = "aprovado";
+    saveUsers(users);
+    alert("Usuário aprovado!");
+    showAdminPanel();
 }
 
-// Criar novo usuário (Admin)
-function criarUsuario() {
-    const nome = prompt("Nome do novo usuário:");
-    if (!nome) return;
-
-    const senha = prompt("Senha do novo usuário:");
-    if (!senha) return;
-
-    if (buscarUsuario(nome)) {
-        alert("Usuário já existe");
-        return;
-    }
-
-    const novoUsuario = {
-        usuario: nome,
-        senha: senha,
-        tipo: "user",
-        tanques: [],
-        vendas: []
-    };
-
-    adicionarUsuario(novoUsuario);
-    alert("Usuário criado com sucesso!");
-    renderApp();
-}
-
-// Resetar senha (Admin)
-function resetarSenha(nomeUsuario) {
-    const novaSenha = prompt("Nova senha:");
-    if (!novaSenha) return;
-
-    const user = buscarUsuario(nomeUsuario);
-    if (user) {
-        user.senha = novaSenha;
-        atualizarUsuario(user);
-        alert("Senha atualizada!");
-    }
-}
-
-// Excluir usuário (Admin)
-function removerUsuario(nomeUsuario) {
-    if (confirm("Deseja realmente excluir este usuário?")) {
-        excluirUsuario(nomeUsuario);
-        alert("Usuário removido!");
-        renderApp();
-    }
+function excluir(email) {
+    let users = getUsers().filter(u => u.email !== email);
+    saveUsers(users);
+    alert("Usuário excluído!");
+    showAdminPanel();
 }
