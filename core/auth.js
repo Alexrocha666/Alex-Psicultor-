@@ -54,8 +54,7 @@ function login(email, senha) {
     }
 
     localStorage.setItem("loggedUser", JSON.stringify(user));
-    alert("Login realizado com sucesso!");
-    location.reload();
+renderApp(user);
 }
 
 // ===============================
